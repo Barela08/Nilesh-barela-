@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E676" />
+      <stop offset="50%" stop-color="#00D2A0" />
+      <stop offset="100%" stop-color="#00A3FF" />
+    </linearGradient>
+    <linearGradient id="codeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00C853" />
+      <stop offset="100%" stop-color="#00A3FF" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Shield Path -->
+  <path 
+    d="M256 36 C344 76 432 72 444 88 C456 220 404 380 256 476 C108 380 56 220 68 88 C80 72 168 76 256 36 Z" 
+    stroke="url(#shieldGrad)" 
+    stroke-width="20" 
+    stroke-linejoin="round" 
+    fill="none"
+  />
+
+  <!-- Padlock -->
+  <path 
+    d="M220 170 V140 C220 120 236 104 256 104 C276 104 292 120 292 140 V170" 
+    stroke="#00E676" 
+    stroke-width="14" 
+    stroke-linecap="round" 
+    fill="none"
+  />
+  <rect x="204" y="166" width="104" height="84" rx="16" fill="#00E676" />
+  <circle cx="256" cy="200" r="8" fill="#080B12" />
+  <path d="M252 204 L248 224 H264 L260 204 Z" fill="#080B12" />
+
+  <!-- Left Circuit Trace -->
+  <circle cx="160" cy="168" r="10" fill="#00E676" />
+  <path d="M160 178 V200 L146 220 L158 244" stroke="#00E676" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+  <!-- Right Circuit Trace -->
+  <circle cx="352" cy="168" r="10" fill="#00D2A0" />
+  <path d="M352 178 V200 L328 200 V236 L344 252" stroke="#00D2A0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+  <!-- Code Bracket </ > in Cyan/Blue -->
+  <path d="M214 266 L174 308 L214 350" stroke="#00A3FF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M272 262 L240 354" stroke="#00A3FF" stroke-width="15" stroke-linecap="round" fill="none" />
+  <path d="M298 266 L338 308 L298 350" stroke="#00A3FF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+  <!-- Bottom Dot -->
+  <circle cx="256" cy="380" r="10" fill="#00C853" />
+</svg>

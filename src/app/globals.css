@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #080B12;
+  --card-dark: #0F1624;
+  --card-border: #1E293B;
+  --color-green: #00E676;
+  --color-blue: #38BDF8;
+  --color-purple: #A78BFA;
+  --color-orange: #FB923C;
+  --text-main: #E8EDF5;
+  --text-muted: #9AA3B8;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background-color: #080B12;
+  color: #E8EDF5;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Subtle tech grid background */
+.tech-grid-bg {
+  background-image: 
+    linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glowing orbs */
+.glow-orb-green {
+  background: radial-gradient(circle, rgba(0, 230, 118, 0.12) 0%, rgba(8, 11, 18, 0) 70%);
+}
+
+.glow-orb-blue {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(8, 11, 18, 0) 70%);
+}
+
+/* Accessibility focus styles */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid #00E676;
+  outline-offset: 2px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #080B12;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

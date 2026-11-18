@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Gaurav Kute",
+    "email": "gaurav.kute@kute-enterprises.com",
+    "phone": "+91 9922881122",
+    "company": "Kute Enterprises Nashik",
+    "requiredService": "custom-software-development",
+    "projectScope": "New Project from Scratch",
+    "estimatedBudget": "₹1,00,000 - ₹2,50,000",
+    "expectedTimeline": "1-2 Months",
+    "additionalRequirements": "Bespoke inventory management and rental vehicle scheduling software.",
+    "ipAddress": "::1",
+    "id": "QUO-MWMAPXH2-361",
+    "status": "new",
+    "createdAt": "2026-11-18T15:48:26.678Z"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "fullName": "Pooja Deshmukh",
+    "email": "pooja.deshmukh@enterprise.co",
+    "phone": "+91 9422113344",
+    "companyName": "Deshmukh Industries, Nashik",
+    "serviceRequired": "hospital-management-software",
+    "preferredDate": "2026-12-01",
+    "preferredTime": "11:00 AM - 12:00 PM",
+    "projectBudget": "₹50,000 - ₹1,00,000",
+    "projectDescription": "Need an integrated OPD and patient EMR solution for our polyclinic.",
+    "ipAddress": "::1",
+    "id": "APT-MWMAPXF7-989",
+    "status": "new",
+    "createdAt": "2026-11-18T15:48:26.611Z"
+  }
+]
