@@ -41,17 +41,55 @@ export default function ServicePageTemplate({ service }: Props) {
     serviceType: service.title,
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: company.websiteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Services',
+        item: `${company.websiteUrl}/services`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: service.title,
+        item: `${company.websiteUrl}${service.path}`,
+      },
+    ],
+  };
+
   return (
     <div className="bg-[#080B12] text-[#E8EDF5] min-h-screen pt-32 pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-8 pb-16 border-b border-[#1E293B]">
+      <section className="relative overflow-hidden pt-4 pb-16 border-b border-[#1E293B]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
+          {/* Visual Breadcrumb Navigation */}
+          <nav aria-label="Breadcrumb" className="mb-6 flex items-center space-x-2 text-xs font-mono text-[#9AA3B8]">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <span>/</span>
+            <Link href="/services" className="hover:text-white transition-colors">Services</Link>
+            <span>/</span>
+            <span className="text-[#00E676]">{service.title}</span>
+          </nav>
+
           <div className="max-w-3xl space-y-4">
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#00E676]/10 border border-[#00E676]/30 text-xs font-mono text-[#00E676]">
               <span className="w-2 h-2 rounded-full bg-[#00E676]"></span>

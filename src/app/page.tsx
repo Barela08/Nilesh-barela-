@@ -27,20 +27,59 @@ import {
 } from 'lucide-react';
 import { servicesData } from '@/data/services';
 import { productsData } from '@/data/products';
-import { portfolioProjects } from '@/data/portfolio';
+import { dbProjects } from '@/lib/db';
 import { founderData } from '@/data/founder';
 import { company } from '@/data/company';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
-  title: 'HackifyPro | Website, App & Custom Software Development',
+  title: 'HackifyPro | Website, Android App & Custom Software Development Company',
   description:
-    'HackifyPro provides website development, Android app development, web applications and custom software solutions for businesses. Discuss your project with our team.',
+    'HackifyPro is a premier software development company in Nashik, Maharashtra. We engineer fast business websites, custom Android apps, web apps, and management software (Hospital, Restaurant POS, Car Rental & Gym). Get a free quote today.',
+  keywords: [
+    'Website Development Company in Nashik',
+    'Android App Development in Nashik',
+    'Software Development Company in Nashik',
+    'Custom Software Development Maharashtra',
+    'Hospital Management Software',
+    'Restaurant POS Billing Software',
+    'Car Rental Management System',
+    'Gym Management Software',
+    'Nilesh Barela',
+    'HackifyPro',
+  ],
   alternates: {
     canonical: 'https://nileshbarela.site',
+  },
+  openGraph: {
+    title: 'HackifyPro | Website, Android App & Custom Software Development Company',
+    description:
+      'We build high-performance business websites, Android apps, and specialized ERP software (Hospital, Restaurant, Car Rental, Gym) for businesses in Nashik and across India.',
+    url: 'https://nileshbarela.site',
+    siteName: 'HackifyPro',
+    locale: 'en_IN',
+    type: 'website',
+    images: [
+      {
+        url: 'https://nileshbarela.site/assets/hackifypro-banner.png',
+        width: 1200,
+        height: 630,
+        alt: 'HackifyPro Software Development & IT Solutions',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HackifyPro | Website, Android App & Custom Software Development Company',
+    description:
+      'We build high-performance business websites, Android apps, and specialized ERP software (Hospital, Restaurant, Car Rental, Gym) for businesses in Nashik and across India.',
+    images: ['https://nileshbarela.site/assets/hackifypro-banner.png'],
   },
 };
 
 export default function HomePage() {
+  const portfolioProjects = dbProjects.getAll();
   const processSteps = [
     { num: '01', title: 'Requirement Analysis', desc: 'Understanding your business workflow, operational goals, target users, and key features.' },
     { num: '02', title: 'Planning & Architecture', desc: 'Defining database models, API specs, security requirements, and development milestones.' },
@@ -93,29 +132,61 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Tagline Badge */}
-            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0F1624] border border-[#1E293B] text-xs font-mono shadow-sm">
+            {/* Core Capability Badge - Instant Clarity */}
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-[#00E676]/10 border border-[#00E676]/30 text-xs font-mono shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></span>
-              <span className="text-[#00E676] font-bold">SECURE</span>
-              <span className="text-[#64748B]">|</span>
-              <span className="text-[#38BDF8] font-bold">LEARN</span>
-              <span className="text-[#64748B]">|</span>
-              <span className="text-[#A78BFA] font-bold">INNOVATE</span>
+              <span className="text-[#00E676] font-bold">WEBSITES</span>
+              <span className="text-[#64748B]">•</span>
+              <span className="text-[#38BDF8] font-bold">ANDROID APPS</span>
+              <span className="text-[#64748B]">•</span>
+              <span className="text-[#A78BFA] font-bold">CUSTOM BUSINESS SOFTWARE</span>
             </div>
 
-            {/* Headline */}
+            {/* Headline - Crystal Clear Value Proposition */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-heading font-extrabold text-white tracking-tight leading-[1.1]">
-              Build Smarter. <br />
-              Innovate Faster. <br />
+              We Build Websites, <br className="hidden sm:inline" />
+              Android Apps &amp; Custom Software <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E676] via-[#38BDF8] to-[#A78BFA]">
-                Grow with Technology.
+                That Grow Your Business.
               </span>
             </h1>
 
             {/* Supporting Description */}
             <p className="text-base sm:text-xl text-[#9AA3B8] max-w-3xl mx-auto font-body leading-relaxed">
-              HackifyPro transforms business ideas into powerful digital products through professional website development, Android applications, web applications and custom software solutions.
+              HackifyPro is a modern technology &amp; software development company in Maharashtra. We build fast, search-optimized business websites, native Android applications, web applications, and complete management software (Hospital, Restaurant, Car Rental, Gym &amp; Driving School) for modern businesses.
             </p>
+
+            {/* 4 Instant Capability Badges */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-3xl mx-auto pt-2">
+              <div className="p-2.5 rounded-xl bg-[#0F1624] border border-[#1E293B] text-left">
+                <div className="text-xs font-bold text-white flex items-center space-x-1.5">
+                  <Globe className="w-3.5 h-3.5 text-[#00E676]" />
+                  <span>Business Websites</span>
+                </div>
+                <div className="text-[11px] text-[#9AA3B8] mt-0.5">High-Speed &amp; SEO Ready</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#0F1624] border border-[#1E293B] text-left">
+                <div className="text-xs font-bold text-white flex items-center space-x-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <span>Android Apps</span>
+                </div>
+                <div className="text-[11px] text-[#9AA3B8] mt-0.5">Native, Play Store Ready</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#0F1624] border border-[#1E293B] text-left">
+                <div className="text-xs font-bold text-white flex items-center space-x-1.5">
+                  <Laptop className="w-3.5 h-3.5 text-[#A78BFA]" />
+                  <span>ERP &amp; Management</span>
+                </div>
+                <div className="text-[11px] text-[#9AA3B8] mt-0.5">Hospital, POS, Rental, Gym</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#0F1624] border border-[#1E293B] text-left">
+                <div className="text-xs font-bold text-white flex items-center space-x-1.5">
+                  <Zap className="w-3.5 h-3.5 text-[#FB923C]" />
+                  <span>Direct Support</span>
+                </div>
+                <div className="text-[11px] text-[#9AA3B8] mt-0.5">Direct Developer Access</div>
+              </div>
+            </div>
 
             {/* CTAs */}
             <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
@@ -123,31 +194,34 @@ export default function HomePage() {
                 href="/request-quote"
                 className="px-7 py-4 rounded-xl bg-gradient-to-r from-[#00E676] to-[#00c853] text-[#080B12] font-mono text-sm font-bold uppercase tracking-wider shadow-glow-green hover:opacity-95 transition-all transform hover:-translate-y-0.5 flex items-center space-x-2"
               >
-                <span>Start Your Project</span>
+                <span>Get Free Project Quote</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               
-              <Link
-                href="/appointment"
-                className="px-7 py-4 rounded-xl bg-[#0F1624] border border-[#1E293B] hover:border-[#38BDF8] text-white font-mono text-sm font-semibold tracking-wide transition-all transform hover:-translate-y-0.5 flex items-center space-x-2"
+              <a
+                href="https://wa.me/917414935405?text=Hi%20HackifyPro%2C%20I%20want%20to%20discuss%20a%20website%20or%20software%20project."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-7 py-4 rounded-xl bg-[#0F1624] border border-[#00E676]/40 hover:border-[#00E676] text-white font-mono text-sm font-semibold tracking-wide transition-all transform hover:-translate-y-0.5 flex items-center space-x-2"
               >
-                <Calendar className="w-4 h-4 text-[#38BDF8]" />
-                <span>Book a Consultation</span>
-              </Link>
+                <MessageCircle className="w-4 h-4 text-[#00E676]" />
+                <span>WhatsApp (+91 7414935405)</span>
+              </a>
 
               <Link
-                href="/services"
-                className="px-6 py-4 rounded-xl text-[#9AA3B8] hover:text-white font-mono text-sm transition-colors"
+                href="/appointment"
+                className="px-6 py-4 rounded-xl text-[#9AA3B8] hover:text-white font-mono text-sm transition-colors flex items-center space-x-1.5"
               >
-                Explore Services &rarr;
+                <Calendar className="w-4 h-4 text-[#38BDF8]" />
+                <span>Book Call &rarr;</span>
               </Link>
             </div>
 
             {/* Local Context Notice */}
-            <div className="pt-6 text-xs font-mono text-[#64748B] flex items-center justify-center space-x-2">
-              <span>Primary Service Hub: Nashik, Maharashtra, India</span>
+            <div className="pt-4 text-xs font-mono text-[#64748B] flex items-center justify-center space-x-2">
+              <span>Primary Hub: Nashik, Maharashtra, India</span>
               <span>&bull;</span>
-              <span className="text-[#00E676]">Serving Businesses Across India & Globally</span>
+              <span className="text-[#00E676]">Fast Turnaround &bull; 100% Dedicated Support</span>
             </div>
 
           </div>
@@ -426,13 +500,33 @@ export default function HomePage() {
                 <div className="p-6 pt-0">
                   <div className="pt-4 border-t border-[#1E293B] flex items-center justify-between">
                     <span className="text-xs font-mono text-[#00E676]">{p.status}</span>
-                    <Link
-                      href={p.demoUrl || '/appointment'}
-                      className="text-xs font-mono text-white hover:text-[#00E676] flex items-center"
-                    >
-                      <span>Schedule Demo</span>
-                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                    </Link>
+                    {p.demoUrl && p.demoUrl.startsWith('http') ? (
+                      <a
+                        href={p.demoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-mono text-[#00E676] hover:underline flex items-center"
+                      >
+                        <span>Live Demo</span>
+                        <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                      </a>
+                    ) : p.demoUrl ? (
+                      <Link
+                        href={p.demoUrl}
+                        className="text-xs font-mono text-white hover:text-[#00E676] flex items-center"
+                      >
+                        <span>Demo & Scope</span>
+                        <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/appointment"
+                        className="text-xs font-mono text-white hover:text-[#00E676] flex items-center"
+                      >
+                        <span>Schedule Demo</span>
+                        <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>

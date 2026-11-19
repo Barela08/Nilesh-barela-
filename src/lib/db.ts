@@ -1,5 +1,20 @@
 import fs from 'fs';
 import path from 'path';
+import { getDb } from './firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { portfolioProjects, PortfolioProject } from '@/data/portfolio';
+
+async function mirrorToFirestore(collName: string, id: string, data: any) {
+  try {
+    const db = getDb();
+    if (!db) return;
+    const docRef = doc(db, collName, id);
+    await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+    console.log(`[Firestore Sync] Mirrored ${collName}/${id}`);
+  } catch (err: any) {
+    console.debug(`[Firestore Sync Notice] Lead ${id} safely stored locally. Cloud sync:`, err?.message || err);
+  }
+}
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 
@@ -121,6 +136,7 @@ export const dbAppointments = {
     };
     all.unshift(newAppointment);
     writeData('appointments.json', all);
+    mirrorToFirestore('appointments', id, newAppointment).catch(() => {});
     return newAppointment;
   },
   updateStatus: (id: string, status: Appointment['status'], notes?: string): Appointment | null => {
@@ -152,6 +168,7 @@ export const dbEnquiries = {
     };
     all.unshift(newEnquiry);
     writeData('enquiries.json', all);
+    mirrorToFirestore('enquiries', id, newEnquiry).catch(() => {});
     return newEnquiry;
   },
   updateStatus: (id: string, status: Enquiry['status'], notes?: string): Enquiry | null => {
@@ -183,6 +200,7 @@ export const dbQuotes = {
     };
     all.unshift(newQuote);
     writeData('quotes.json', all);
+    mirrorToFirestore('quotes', id, newQuote).catch(() => {});
     return newQuote;
   },
   updateStatus: (id: string, status: QuoteRequest['status'], notes?: string): QuoteRequest | null => {
@@ -193,5 +211,56 @@ export const dbQuotes = {
     if (notes !== undefined) all[idx].notes = notes;
     writeData('quotes.json', all);
     return all[idx];
+  },
+};
+
+// PROJECTS & PORTFOLIO
+export { type PortfolioProject };
+
+export const dbProjects = {
+  getAll: (): PortfolioProject[] => readData<PortfolioProject[]>('projects.json', portfolioProjects),
+  getById: (id: string): PortfolioProject | undefined => {
+    const all = readData<PortfolioProject[]>('projects.json', portfolioProjects);
+    return all.find((p) => p.id === id);
+  },
+  create: (item: Omit<PortfolioProject, 'id' | 'slug'> & { id?: string; slug?: string }): PortfolioProject => {
+    const all = readData<PortfolioProject[]>('projects.json', portfolioProjects);
+    const id = item.id || `PROJ-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 899 + 100)}`;
+    const slug = item.slug || item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newProject: PortfolioProject = {
+      ...item,
+      id,
+      slug,
+      hasDemo: Boolean(item.demoUrl && item.demoUrl.trim().length > 0),
+    };
+    all.unshift(newProject);
+    writeData('projects.json', all);
+    mirrorToFirestore('projects', id, newProject).catch(() => {});
+    return newProject;
+  },
+  update: (id: string, updates: Partial<PortfolioProject>): PortfolioProject | null => {
+    const all = readData<PortfolioProject[]>('projects.json', portfolioProjects);
+    const idx = all.findIndex((p) => p.id === id);
+    if (idx === -1) return null;
+    const current = all[idx];
+    const demoUrl = updates.demoUrl !== undefined ? updates.demoUrl : current.demoUrl;
+    const updated: PortfolioProject = {
+      ...current,
+      ...updates,
+      id,
+      hasDemo: Boolean(demoUrl && demoUrl.trim().length > 0),
+    };
+    all[idx] = updated;
+    writeData('projects.json', all);
+    mirrorToFirestore('projects', id, updated).catch(() => {});
+    return updated;
+  },
+  delete: (id: string): boolean => {
+    const all = readData<PortfolioProject[]>('projects.json', portfolioProjects);
+    const initialLen = all.length;
+    const filtered = all.filter((p) => p.id !== id);
+    if (filtered.length === initialLen) return false;
+    writeData('projects.json', filtered);
+    return true;
   },
 };

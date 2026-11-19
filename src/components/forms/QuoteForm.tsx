@@ -229,29 +229,20 @@ export default function QuoteForm({ defaultService = '' }: { defaultService?: st
         ></textarea>
       </div>
 
-      {/* DPDP Act 2023 Explicit Consent Box */}
-      <div className="p-4 rounded-xl bg-[#0F1624] border border-[#1E293B] space-y-3">
-        <div className="flex items-center space-x-2 text-xs font-mono text-[#00E676]">
-          <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-          <span className="font-semibold uppercase tracking-wider">DPDP Act, 2023 Notice &amp; Consent</span>
-        </div>
-        <p className="text-[11px] text-[#9AA3B8] leading-relaxed">
-          We collect your contact and project requirements exclusively to draft technical specifications, milestone plans, and commercial quotations. Under the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act)</strong>, your data will never be sold or used for automated marketing. You maintain full rights to access, update, erase, or revoke consent at any time via <a href="mailto:hackifypro@gmail.com" className="text-[#00E676] hover:underline">hackifypro@gmail.com</a>.
-        </p>
-        <div className="pt-2 border-t border-[#1E293B]/70 flex items-start space-x-3">
-          <input
-            type="checkbox"
-            id="quoteDpdpConsent"
-            name="dpdpConsent"
-            required
-            checked={formData.dpdpConsent}
-            onChange={handleChange}
-            className="mt-0.5 h-4 w-4 rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12] cursor-pointer"
-          />
-          <label htmlFor="quoteDpdpConsent" className="text-xs text-[#E8EDF5] leading-snug cursor-pointer select-none">
-            I voluntarily provide my contact details and give explicit consent under the DPDP Act, 2023 to HackifyPro for preparing and delivering this proposal in accordance with the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#00E676] underline hover:text-[#00c853]">Privacy Policy</a>. <span className="text-[#00E676]">*</span>
-          </label>
-        </div>
+      {/* Compact Consent */}
+      <div className="flex items-center space-x-3 pt-1">
+        <input
+          type="checkbox"
+          id="quoteDpdpConsent"
+          name="dpdpConsent"
+          required
+          checked={formData.dpdpConsent}
+          onChange={handleChange}
+          className="h-4 w-4 rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12] cursor-pointer"
+        />
+        <label htmlFor="quoteDpdpConsent" className="text-xs text-[#9AA3B8] cursor-pointer select-none">
+          I agree to be contacted via WhatsApp/Email with this formal project proposal under the <a href="/privacy-policy" target="_blank" className="text-[#00E676] underline">Privacy Policy</a>. <span className="text-[#00E676]">*</span>
+        </label>
       </div>
 
       <div className="flex items-start space-x-2 text-xs text-[#9AA3B8]">

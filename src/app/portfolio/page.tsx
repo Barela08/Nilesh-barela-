@@ -2,8 +2,10 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { portfolioProjects } from '@/data/portfolio';
+import { ArrowRight, CheckCircle2, ExternalLink } from 'lucide-react';
+import { dbProjects } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Portfolio & Software Projects | HackifyPro',
@@ -14,6 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default function PortfolioPage() {
+  const portfolioProjects = dbProjects.getAll();
   return (
     <div className="bg-[#080B12] text-[#E8EDF5] min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -83,13 +86,33 @@ export default function PortfolioPage() {
                   ))}
                 </div>
 
-                <div className="pt-4 flex items-center space-x-4">
-                  <Link
-                    href={p.demoUrl || '/appointment'}
-                    className="px-5 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
-                  >
-                    Request Demo
-                  </Link>
+                <div className="pt-4 flex flex-wrap items-center gap-4">
+                  {p.demoUrl && p.demoUrl.startsWith('http') ? (
+                    <a
+                      href={p.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-5 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity inline-flex items-center space-x-1.5"
+                    >
+                      <span>Live Demo</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  ) : p.demoUrl ? (
+                    <Link
+                      href={p.demoUrl}
+                      className="px-5 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity inline-flex items-center space-x-1.5"
+                    >
+                      <span>View Demo</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/appointment"
+                      className="px-5 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
+                    >
+                      Request Demo
+                    </Link>
+                  )}
                   <Link
                     href="/appointment"
                     className="text-xs font-mono text-white hover:text-[#00E676] flex items-center"

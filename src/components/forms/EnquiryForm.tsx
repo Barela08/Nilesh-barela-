@@ -2,25 +2,27 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Send, AlertCircle, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { servicesData } from '@/data/services';
 import { productsData } from '@/data/products';
+import { trackWhatsAppClick } from '@/lib/analytics';
 
-export default function EnquiryForm({ defaultService = '' }: { defaultService?: string }) {
+interface Props {
+  defaultService?: string;
+}
+
+export default function EnquiryForm({ defaultService = '' }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
-    company: '',
+    email: '',
     interestedService: defaultService || 'website-development',
-    budgetRange: '₹25,000 - ₹50,000',
-    timeline: '1-2 Weeks',
     message: '',
-    privacyConsent: false,
+    privacyConsent: true,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -37,13 +39,13 @@ export default function EnquiryForm({ defaultService = '' }: { defaultService?: 
     e.preventDefault();
     setError('');
 
-    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.message.trim()) {
-      setError('Please fill in all required fields.');
+    if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setError('Please fill in your name, phone number, email, and project requirement.');
       return;
     }
 
     if (!formData.privacyConsent) {
-      setError('Under the Digital Personal Data Protection Act (DPDP Act, 2023), your explicit affirmative consent is required. Please check the consent box below to proceed.');
+      setError('Please confirm that you agree to be contacted regarding this enquiry.');
       return;
     }
 
@@ -64,13 +66,13 @@ export default function EnquiryForm({ defaultService = '' }: { defaultService?: 
 
       router.push(`/enquiry-confirmation?id=${result.id}&name=${encodeURIComponent(formData.name)}`);
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred. Please contact us directly.');
+      setError(err.message || 'An unexpected error occurred. Please contact us directly on WhatsApp.');
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       {error && (
         <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-sm flex items-center space-x-3">
           <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400" />
@@ -78,180 +80,147 @@ export default function EnquiryForm({ defaultService = '' }: { defaultService?: 
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Full Name */}
+          <div>
+            <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
+              Your Name / Business Name <span className="text-[#00E676]">*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g. Nilesh Patel"
+              className="w-full bg-[#080B12] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
+            />
+          </div>
+
+          {/* WhatsApp / Phone */}
+          <div>
+            <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
+              WhatsApp / Mobile Number <span className="text-[#00E676]">*</span>
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              required
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="e.g. +91 7414935405"
+              className="w-full bg-[#080B12] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Email */}
+          <div>
+            <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
+              Email Address <span className="text-[#00E676]">*</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="e.g. contact@yourbusiness.com"
+              className="w-full bg-[#080B12] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
+            />
+          </div>
+
+          {/* Service / Software Needed */}
+          <div>
+            <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
+              Service or Software Needed <span className="text-[#00E676]">*</span>
+            </label>
+            <select
+              name="interestedService"
+              value={formData.interestedService}
+              onChange={handleChange}
+              className="w-full bg-[#080B12] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
+            >
+              <optgroup label="Software Development Services">
+                {servicesData.map((s) => (
+                  <option key={s.slug} value={s.slug}>{s.title}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Management Software Solutions">
+                {productsData.map((p) => (
+                  <option key={p.slug} value={p.slug}>{p.title}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        {/* Project Requirement */}
         <div>
           <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-            Your Name <span className="text-[#00E676]">*</span>
+            Brief Project Requirement <span className="text-[#00E676]">*</span>
           </label>
-          <input
-            type="text"
-            name="name"
+          <textarea
+            name="message"
             required
-            value={formData.name}
+            rows={3}
+            value={formData.message}
             onChange={handleChange}
-            placeholder="e.g. Nilesh Patel"
-            className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-          />
+            placeholder="Tell us what you want to build (e.g. Corporate website for my clinic, Android delivery app, or Restaurant billing software)..."
+            className="w-full bg-[#080B12] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
+          ></textarea>
         </div>
 
-        <div>
-          <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-            Business Email <span className="text-[#00E676]">*</span>
-          </label>
-          <input
-            type="email"
-            name="email"
-            required
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="e.g. nilesh@enterprise.in"
-            className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-            Phone / WhatsApp <span className="text-[#00E676]">*</span>
-          </label>
-          <input
-            type="tel"
-            name="phone"
-            required
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="e.g. +91 7414935405"
-            className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-            Company / Organization
-          </label>
-          <input
-            type="text"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            placeholder="e.g. TechCorp Solutions"
-            className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-            Interested Service / Solution <span className="text-[#00E676]">*</span>
-          </label>
-          <select
-            name="interestedService"
-            value={formData.interestedService}
-            onChange={handleChange}
-            className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-          >
-            <optgroup label="Services">
-              {servicesData.map((s) => (
-                <option key={s.slug} value={s.slug}>{s.title}</option>
-              ))}
-            </optgroup>
-            <optgroup label="Software Products">
-              {productsData.map((p) => (
-                <option key={p.slug} value={p.slug}>{p.title}</option>
-              ))}
-            </optgroup>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-            Estimated Budget
-          </label>
-          <select
-            name="budgetRange"
-            value={formData.budgetRange}
-            onChange={handleChange}
-            className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-          >
-            <option value="Under ₹25,000">Under ₹25,000</option>
-            <option value="₹25,000 - ₹50,000">₹25,000 - ₹50,000</option>
-            <option value="₹50,000 - ₹1,00,000">₹50,000 - ₹1,00,000</option>
-            <option value="₹1,00,000 - ₹2,50,000">₹1,00,000 - ₹2,50,000</option>
-            <option value="₹2,50,000+">₹2,50,000+ (Custom Enterprise)</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-          Expected Timeline
-        </label>
-        <select
-          name="timeline"
-          value={formData.timeline}
-          onChange={handleChange}
-          className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-        >
-          <option value="Immediate (Within 1 Week)">Immediate (Within 1 Week)</option>
-          <option value="1-2 Weeks">1-2 Weeks</option>
-          <option value="2-4 Weeks">2-4 Weeks</option>
-          <option value="1-2 Months">1-2 Months</option>
-          <option value="Flexible / Planning Phase">Flexible / Planning Phase</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-xs font-mono font-medium text-[#9AA3B8] uppercase mb-1.5">
-          Project Details & Message <span className="text-[#00E676]">*</span>
-        </label>
-        <textarea
-          name="message"
-          required
-          rows={4}
-          value={formData.message}
-          onChange={handleChange}
-          placeholder="Please describe your software requirements, challenges you are looking to solve, or questions you have..."
-          className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
-        ></textarea>
-      </div>
-
-      {/* DPDP Act 2023 Explicit Consent Box */}
-      <div className="p-4 rounded-xl bg-[#0F1624] border border-[#1E293B] space-y-3">
-        <div className="flex items-center space-x-2 text-xs font-mono text-[#00E676]">
-          <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-          <span className="font-semibold uppercase tracking-wider">DPDP Act, 2023 Notice &amp; Consent</span>
-        </div>
-        <p className="text-[11px] text-[#9AA3B8] leading-relaxed">
-          We collect your name, contact information, and project specifications solely to respond to your technical enquiry, prepare service proposals, and schedule consultations. In compliance with the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act)</strong>, your data is processed only with your explicit consent and will never be shared with third parties for marketing. You have the right to access, rectify, erase, or withdraw your consent at any time by emailing <a href="mailto:hackifypro@gmail.com" className="text-[#00E676] hover:underline">hackifypro@gmail.com</a>.
-        </p>
-        <div className="pt-2 border-t border-[#1E293B]/70 flex items-start space-x-3">
+        {/* Compact Consent */}
+        <div className="flex items-center space-x-3 pt-1">
           <input
             type="checkbox"
             id="privacyConsent"
             name="privacyConsent"
-            required
             checked={formData.privacyConsent}
             onChange={handleChange}
-            className="mt-0.5 h-4 w-4 rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12] cursor-pointer"
+            className="h-4 w-4 rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12] cursor-pointer"
           />
-          <label htmlFor="privacyConsent" className="text-xs text-[#E8EDF5] leading-snug cursor-pointer select-none">
-            I explicitly consent under the DPDP Act, 2023 to HackifyPro collecting and processing my submitted details for this project enquiry in accordance with the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#00E676] underline hover:text-[#00c853]">Privacy Policy</a>. <span className="text-[#00E676]">*</span>
+          <label htmlFor="privacyConsent" className="text-xs text-[#9AA3B8] cursor-pointer select-none">
+            I agree to receive a project quote and consultation via WhatsApp/Email under the <a href="/privacy-policy" target="_blank" className="text-[#00E676] underline">Privacy Policy</a>.
           </label>
         </div>
-      </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-4 rounded-xl font-mono text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-[#00E676] to-[#00c853] text-[#080B12] hover:opacity-95 transition-all shadow-glow-green flex items-center justify-center space-x-2 disabled:opacity-50"
-      >
-        {loading ? (
-          <span>Sending Enquiry...</span>
-        ) : (
-          <>
-            <span>Submit Project Enquiry</span>
-            <Send className="w-4 h-4" />
-          </>
-        )}
-      </button>
-    </form>
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-4 rounded-xl font-mono text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-[#00E676] to-[#00c853] text-[#080B12] hover:opacity-95 transition-all shadow-glow-green flex items-center justify-center space-x-2 disabled:opacity-50"
+        >
+          {loading ? (
+            <span>Sending Project Enquiry...</span>
+          ) : (
+            <>
+              <span>Send Project Enquiry</span>
+              <Send className="w-4 h-4" />
+            </>
+          )}
+        </button>
+      </form>
+
+      {/* Direct WhatsApp Fast-Track */}
+      <div className="pt-4 border-t border-[#1E293B] text-center">
+        <p className="text-xs text-[#9AA3B8] mb-3">
+          Prefer an instant chat with Nilesh Barela?
+        </p>
+        <a
+          href="https://wa.me/917414935405?text=Hi%20Nilesh%2C%20I%20have%20a%20project%20enquiry%20for%20HackifyPro."
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackWhatsAppClick('enquiry_form_instant')}
+          className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#00E676]/10 border border-[#00E676]/30 text-xs font-mono font-bold text-[#00E676] hover:bg-[#00E676] hover:text-[#080B12] transition-all"
+        >
+          <MessageCircle className="w-4 h-4" />
+          <span>Chat Directly on WhatsApp (+91 7414935405)</span>
+        </a>
+      </div>
+    </div>
   );
 }
