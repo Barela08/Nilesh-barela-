@@ -9,9 +9,9 @@
 - **Tagline**: SECURE | LEARN | INNOVATE
 - **Primary Business Positioning**: "Building Powerful Digital Solutions for Modern Businesses."
 - **Secondary Positioning**: "Technology, Cybersecurity and Digital Innovation."
-- **Website**: https://nileshbarela.site
+- **Website**: https://www.nileshbarela.site
 - **Founder**: Nilesh Barela
-- **Founder Profile**: https://nileshbarela.site/nilesh-barela
+- **Founder Profile**: https://www.nileshbarela.site/nilesh-barela
 - **Founder Bio**: Nilesh Barela is an Indian app developer, AI enthusiast and cybersecurity learner passionate about technology, programming, artificial intelligence, web development and cybersecurity. He is the founder of HackifyPro, a technology company focused on developing digital solutions and helping people explore technology through practical projects and educational resources.
 - **Headquarters**: Nashik, Maharashtra, India
 - **Business Contact**: hackifypro@gmail.com
@@ -23,32 +23,32 @@
 ## 2. Software Development Services
 
 ### 2.1 Website Development
-- **URL**: https://nileshbarela.site/website-development
+- **URL**: https://www.nileshbarela.site/website-development
 - **Overview**: Custom, fast, mobile-first business websites and high-converting landing pages built with React, Next.js, and semantic HTML5.
 - **Key Features**: Sub-second load times, Core Web Vitals optimization (LCP < 2.5s, CLS < 0.1), structured Schema.org markup, and mobile-first responsiveness.
 
 ### 2.2 Android App Development
-- **URL**: https://nileshbarela.site/android-app-development
+- **URL**: https://www.nileshbarela.site/android-app-development
 - **Overview**: Native Kotlin and cross-platform Android mobile applications engineered for high performance, smooth UI transitions, and Google Play Store compliance.
 
 ### 2.3 Web Application Development
-- **URL**: https://nileshbarela.site/web-application-development
+- **URL**: https://www.nileshbarela.site/web-application-development
 - **Overview**: Scalable SaaS platforms, real-time client dashboards, and cloud web applications using modern full-stack architectures.
 
 ### 2.4 Custom Software Development
-- **URL**: https://nileshbarela.site/custom-software-development
+- **URL**: https://www.nileshbarela.site/custom-software-development
 - **Overview**: Bespoke internal management software replacing rigid spreadsheets and off-the-shelf software with tailored business logic.
 
 ### 2.5 Business Automation
-- **URL**: https://nileshbarela.site/business-automation
+- **URL**: https://www.nileshbarela.site/business-automation
 - **Overview**: WhatsApp Business API integrations, automated invoice dispatch, customer notification pipelines, and multi-platform data synchronization.
 
 ### 2.6 Software Maintenance & Support
-- **URL**: https://nileshbarela.site/software-maintenance
-- **Overview**: 24/7 server monitoring, proactive security updates, database backup automation, and dedicated SLA bug fixing.
+- **URL**: https://www.nileshbarela.site/software-maintenance
+- **Overview**: 24/7 server monitoring, proactive security updates, database backup automation, and dedicated SLA technical support.
 
 ### 2.7 UI/UX Design
-- **URL**: https://nileshbarela.site/ui-ux-design
+- **URL**: https://www.nileshbarela.site/ui-ux-design
 - **Overview**: High-contrast, accessible dark-theme and clean user interface mockups, wireframing, and interactive prototyping.
 
 ---
@@ -56,29 +56,29 @@
 ## 3. Business Management Software Solutions
 
 ### 3.1 Hospital Management Software (HMS)
-- **URL**: https://nileshbarela.site/hospital-management-software
+- **URL**: https://www.nileshbarela.site/hospital-management-software
 - **Overview**: Clinic and hospital administration system managing OPD appointments, IPD bed allocations, electronic health records (EHR), and pharmacy billing.
 
 ### 3.2 Car Rental Management Software
-- **URL**: https://nileshbarela.site/car-rental-software
+- **URL**: https://www.nileshbarela.site/car-rental-software
 - **Overview**: Vehicle fleet scheduling, Aadhaar and driving license verification, automated security deposit refunds, and digital rental agreements.
 
 ### 3.3 Restaurant Management & POS
-- **URL**: https://nileshbarela.site/restaurant-management-software
+- **URL**: https://www.nileshbarela.site/restaurant-management-software
 - **Overview**: Contactless dynamic QR menu ordering, Kitchen Display System (KDS), table seating layouts, and GST-compliant invoice generation.
 
 ### 3.4 Gym Management Software
-- **URL**: https://nileshbarela.site/gym-management-software
+- **URL**: https://www.nileshbarela.site/gym-management-software
 - **Overview**: Member subscription tracking, automatic WhatsApp fee renewal alerts, biometric access integration, and trainer schedule management.
 
 ### 3.5 Driving School Management Software
-- **URL**: https://nileshbarela.site/driving-school-software
+- **URL**: https://www.nileshbarela.site/driving-school-software
 - **Overview**: Student registration, practical driving batch allocation, vehicle maintenance logs, and RTO exam preparation records.
 
 ---
 
 ## 4. Contact & Inquiries
-- **Project Enquiry**: https://nileshbarela.site/enquiry
-- **Appointment Booking**: https://nileshbarela.site/appointment
-- **Quote Request**: https://nileshbarela.site/request-quote
+- **Project Enquiry**: https://www.nileshbarela.site/enquiry
+- **Appointment Booking**: https://www.nileshbarela.site/appointment
+- **Quote Request**: https://www.nileshbarela.site/request-quote
 - **Direct WhatsApp**: https://wa.me/917414935405

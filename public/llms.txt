@@ -6,39 +6,39 @@ HackifyPro transforms business ideas into scalable, secure digital products. We 
 
 ## Core Services
 
-- [Website Development](https://nileshbarela.site/website-development): High-performance, SEO-engineered corporate websites and landing pages built with React, Next.js, and modern CSS.
-- [Android App Development](https://nileshbarela.site/android-app-development): Native and cross-platform Android mobile applications published to Google Play Store.
-- [Web Application Development](https://nileshbarela.site/web-application-development): Custom SaaS platforms, cloud dashboards, and business web applications.
-- [Custom Software Development](https://nileshbarela.site/custom-software-development): Bespoke software tailored to proprietary enterprise workflows and database requirements.
-- [Business Automation](https://nileshbarela.site/business-automation): Workflow automation, WhatsApp Business API integrations, and CRM synchronization.
-- [Software Maintenance](https://nileshbarela.site/software-maintenance): Proactive updates, security vulnerability patching, and dedicated SLA technical support.
-- [UI/UX Design](https://nileshbarela.site/ui-ux-design): Intuitive user interfaces, responsive design systems, and conversion-focused user journeys.
+- [Website Development](https://www.nileshbarela.site/website-development): High-performance, SEO-engineered corporate websites and landing pages built with React, Next.js, and modern CSS.
+- [Android App Development](https://www.nileshbarela.site/android-app-development): Native and cross-platform Android mobile applications published to Google Play Store.
+- [Web Application Development](https://www.nileshbarela.site/web-application-development): Custom SaaS platforms, cloud dashboards, and business web applications.
+- [Custom Software Development](https://www.nileshbarela.site/custom-software-development): Bespoke software tailored to proprietary enterprise workflows and database requirements.
+- [Business Automation](https://www.nileshbarela.site/business-automation): Workflow automation, WhatsApp Business API integrations, and CRM synchronization.
+- [Software Maintenance](https://www.nileshbarela.site/software-maintenance): Proactive updates, security vulnerability patching, and dedicated SLA technical support.
+- [UI/UX Design](https://www.nileshbarela.site/ui-ux-design): Intuitive user interfaces, responsive design systems, and conversion-focused user journeys.
 
 ## Business Software Solutions
 
-- [Hospital Management Software](https://nileshbarela.site/hospital-management-software): Complete clinic and hospital operations system covering OPD/IPD, doctor desk, EHR, and pharmacy billing.
-- [Car Rental Software](https://nileshbarela.site/car-rental-software): Vehicle fleet scheduling, Aadhaar and driving license KYC verification, and digital rental agreements.
-- [Restaurant Management POS](https://nileshbarela.site/restaurant-management-software): Table management, QR code contactless menus, Kitchen Display System (KDS), and GST billing.
-- [Gym Management Software](https://nileshbarela.site/gym-management-software): Member registrations, automated fee renewal WhatsApp alerts, biometric attendance, and trainer schedules.
-- [Driving School Software](https://nileshbarela.site/driving-school-software): Student enrollments, instructor batch management, vehicle maintenance tracking, and RTO test logs.
+- [Hospital Management Software](https://www.nileshbarela.site/hospital-management-software): Complete clinic and hospital operations system covering OPD/IPD, doctor desk, EHR, and pharmacy billing.
+- [Car Rental Software](https://www.nileshbarela.site/car-rental-software): Vehicle fleet scheduling, Aadhaar and driving license KYC verification, and digital rental agreements.
+- [Restaurant Management POS](https://www.nileshbarela.site/restaurant-management-software): Table management, QR code contactless menus, Kitchen Display System (KDS), and GST billing.
+- [Gym Management Software](https://www.nileshbarela.site/gym-management-software): Member registrations, automated fee renewal WhatsApp alerts, biometric attendance, and trainer schedules.
+- [Driving School Software](https://www.nileshbarela.site/driving-school-software): Student enrollments, instructor batch management, vehicle maintenance tracking, and RTO test logs.
 
 ## Company & Founder
 
-- [About HackifyPro](https://nileshbarela.site/about): Company background, mission, technology stack, and engineering standards.
-- [Nilesh Barela (Founder Profile)](https://nileshbarela.site/nilesh-barela): Biography, app development background, AI enthusiasm, and cybersecurity learning.
-- [Portfolio Case Studies](https://nileshbarela.site/portfolio): Real-world project demonstrations, architecture overviews, and live client solutions.
-- [Frequently Asked Questions](https://nileshbarela.site/faq): Answers regarding project timelines, development process, pricing models, and ongoing maintenance.
-- [Contact & Locations](https://nileshbarela.site/contact): Primary service hub in Nashik, Maharashtra, India, with direct phone and WhatsApp contact details.
+- [About HackifyPro](https://www.nileshbarela.site/about): Company background, mission, technology stack, and engineering standards.
+- [Nilesh Barela (Founder Profile)](https://www.nileshbarela.site/nilesh-barela): Biography, app development background, AI enthusiasm, and cybersecurity learning.
+- [Portfolio Case Studies](https://www.nileshbarela.site/portfolio): Real-world project demonstrations, architecture overviews, and live client solutions.
+- [Frequently Asked Questions](https://www.nileshbarela.site/faq): Answers regarding project timelines, development process, pricing models, and ongoing maintenance.
+- [Contact & Locations](https://www.nileshbarela.site/contact): Primary service hub in Nashik, Maharashtra, India, with direct phone and WhatsApp contact details.
 
 ## Conversions & Lead Funnels
 
-- [Submit Project Enquiry](https://nileshbarela.site/enquiry): Submit project requirements to receive a technical response within 24 business hours.
-- [Book Technical Consultation](https://nileshbarela.site/appointment): Schedule a discovery video call or in-person consultation with Nilesh Barela.
-- [Request a Quote](https://nileshbarela.site/request-quote): Get an itemized cost estimate and milestone schedule for your project.
+- [Submit Project Enquiry](https://www.nileshbarela.site/enquiry): Submit project requirements to receive a technical response within 24 business hours.
+- [Book Technical Consultation](https://www.nileshbarela.site/appointment): Schedule a discovery video call or in-person consultation with Nilesh Barela.
+- [Request a Quote](https://www.nileshbarela.site/request-quote): Get an itemized cost estimate and milestone schedule for your project.
 
 ## Optional
 
-- [Privacy Policy](https://nileshbarela.site/privacy-policy): DPDP Act 2023 compliant privacy and data processing policy.
-- [Terms & Conditions](https://nileshbarela.site/terms-and-conditions): Legal terms governing software development projects and service agreements.
-- [Sitemap](https://nileshbarela.site/sitemap.xml): Complete machine-readable XML index of all canonical pages.
-- [Full LLM Knowledgebase](https://nileshbarela.site/llms-full.txt): Unabridged documentation and technical reference for AI agents.
+- [Privacy Policy](https://www.nileshbarela.site/privacy-policy): DPDP Act 2023 compliant privacy and data processing policy.
+- [Terms & Conditions](https://www.nileshbarela.site/terms-and-conditions): Legal terms governing software development projects and service agreements.
+- [Sitemap](https://www.nileshbarela.site/sitemap.xml): Complete machine-readable XML index of all canonical pages.
+- [Full LLM Knowledgebase](https://www.nileshbarela.site/llms-full.txt): Unabridged documentation and technical reference for AI agents.
