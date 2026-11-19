@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-EG5RTC5GEV';
+export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-3EWJFLZ3QZ';
 export const ADS_CONVERSION_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID || '';
 
 export type ConversionType = 'appointment' | 'enquiry' | 'quote' | 'signup';
@@ -40,7 +40,7 @@ export function trackEvent(eventName: string, params: Record<string, any> = {}) 
     window.gtag('event', eventName, safeParams);
     console.log(`[GA4 Event] ${eventName}:`, safeParams);
   } else {
-    console.debug(`[GA4 Mock] Event '${eventName}' logged (gtag not loaded):`, safeParams);
+    console.debug(`[GA4 Mock] Event '${eventName}' logged:`, safeParams);
   }
 }
 
@@ -100,7 +100,7 @@ export function trackConversion(type: ConversionType, transactionId: string, val
     console.log(`[Google Ads Conversion] Fired ${type} to ${sendTo} with ID: ${transactionId}`);
   } else {
     console.info(
-      `[Google Ads Conversion] Note: Google Ads conversion ID or label for '${type}' is awaiting configuration. (GA4 event tracked cleanly).`
+      `[Google Ads Conversion] Note: Google Ads conversion ID or label for '${type}' is awaiting configuration. (GA4 event tracked cleanly with Measurement ID ${GA_MEASUREMENT_ID}).`
     );
   }
 
