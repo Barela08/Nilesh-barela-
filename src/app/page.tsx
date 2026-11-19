@@ -218,7 +218,7 @@ export default function HomePage() {
             </div>
 
             {/* Local Context Notice */}
-            <div className="pt-4 text-xs font-mono text-[#64748B] flex items-center justify-center space-x-2">
+            <div className="pt-4 text-xs font-mono text-[#94A3B8] flex items-center justify-center space-x-2">
               <span>Primary Hub: Nashik, Maharashtra, India</span>
               <span>&bull;</span>
               <span className="text-[#00E676]">Fast Turnaround &bull; 100% Dedicated Support</span>
@@ -231,9 +231,10 @@ export default function HomePage() {
             <div className="rounded-2xl border border-[#1E293B] bg-[#0F1624] p-3 sm:p-4 shadow-2xl relative overflow-hidden group">
               <div className="relative h-64 sm:h-96 w-full rounded-xl overflow-hidden bg-[#080B12]">
                 <Image
-                  src="/assets/hackifypro-workspace.png"
+                  src="/assets/hackifypro-workspace.webp"
                   alt="HackifyPro Technology Development Workspace & Hospital Management System Architecture"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                   className="object-cover object-center group-hover:scale-102 transition-transform duration-700"
                   priority
                 />

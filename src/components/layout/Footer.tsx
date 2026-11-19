@@ -74,7 +74,7 @@ export default function Footer() {
                 href={company.founder.socials.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-[#0F1624] border border-[#1E293B] flex items-center justify-center text-white hover:text-[#00E676] hover:border-[#00E676] transition-all"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg bg-[#0F1624] border border-[#1E293B] flex items-center justify-center text-white hover:text-[#00E676] hover:border-[#00E676] transition-all"
                 aria-label="HackifyPro on LinkedIn"
               >
                 <Linkedin className="w-4 h-4" />
@@ -83,7 +83,7 @@ export default function Footer() {
                 href={company.founder.socials.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-[#0F1624] border border-[#1E293B] flex items-center justify-center text-white hover:text-[#38BDF8] hover:border-[#38BDF8] transition-all"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg bg-[#0F1624] border border-[#1E293B] flex items-center justify-center text-white hover:text-[#38BDF8] hover:border-[#38BDF8] transition-all"
                 aria-label="HackifyPro on Instagram"
               >
                 <Instagram className="w-4 h-4" />
@@ -92,7 +92,7 @@ export default function Footer() {
                 href={company.founder.socials.x}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-[#0F1624] border border-[#1E293B] flex items-center justify-center text-white hover:text-[#A78BFA] hover:border-[#A78BFA] transition-all"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg bg-[#0F1624] border border-[#1E293B] flex items-center justify-center text-white hover:text-[#A78BFA] hover:border-[#A78BFA] transition-all"
                 aria-label="HackifyPro on X"
               >
                 <Twitter className="w-4 h-4" />
@@ -102,7 +102,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackWhatsAppClick('footer_social')}
-                className="px-3 py-1.5 rounded-lg bg-[#00E676]/15 border border-[#00E676]/40 text-xs font-mono font-bold text-[#00E676] hover:bg-[#00E676] hover:text-[#080B12] transition-all"
+                className="min-h-[44px] px-3.5 py-2.5 rounded-lg bg-[#00E676]/15 border border-[#00E676]/40 text-xs font-mono font-bold text-[#00E676] hover:bg-[#00E676] hover:text-[#080B12] transition-all flex items-center justify-center"
               >
                 WhatsApp Chat &rarr;
               </a>
@@ -269,21 +269,21 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar: Copyright & Legal */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-[#64748B] space-y-4 md:space-y-0 font-mono">
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-[#94A3B8] space-y-4 md:space-y-0 font-mono">
           <div>
-            &copy; {currentYear} <Link href="/" className="text-[#9AA3B8] hover:text-white">HackifyPro</Link>. Founded by <Link href="/nilesh-barela" className="text-[#00E676] hover:underline">Nilesh Barela</Link>. All Rights Reserved.
+            &copy; {currentYear} <Link href="/" className="text-[#CBD5E1] hover:text-white underline-offset-4 hover:underline">HackifyPro</Link>. Founded by <Link href="/nilesh-barela" className="text-[#00E676] underline underline-offset-4 hover:text-[#00c853]">Nilesh Barela</Link>. All Rights Reserved.
           </div>
 
-          <div className="flex flex-wrap items-center space-x-4">
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <span>&bull;</span>
-            <Link href="/terms-and-conditions" className="hover:text-white transition-colors">Terms & Conditions</Link>
-            <span>&bull;</span>
-            <Link href="/refund-policy" className="hover:text-white transition-colors">Refund Policy</Link>
-            <span>&bull;</span>
-            <Link href="/cookie-policy" className="hover:text-white transition-colors">Cookie Policy</Link>
-            <span>&bull;</span>
-            <a href="/sitemap.xml" className="hover:text-white transition-colors">Sitemap</a>
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+            <Link href="/privacy-policy" className="py-2.5 px-2 text-[#94A3B8] hover:text-white underline-offset-4 hover:underline transition-colors inline-block">Privacy Policy</Link>
+            <span className="text-[#64748B]">&bull;</span>
+            <Link href="/terms-and-conditions" className="py-2.5 px-2 text-[#94A3B8] hover:text-white underline-offset-4 hover:underline transition-colors inline-block">Terms & Conditions</Link>
+            <span className="text-[#64748B]">&bull;</span>
+            <Link href="/refund-policy" className="py-2.5 px-2 text-[#94A3B8] hover:text-white underline-offset-4 hover:underline transition-colors inline-block">Refund Policy</Link>
+            <span className="text-[#64748B]">&bull;</span>
+            <Link href="/cookie-policy" className="py-2.5 px-2 text-[#94A3B8] hover:text-white underline-offset-4 hover:underline transition-colors inline-block">Cookie Policy</Link>
+            <span className="text-[#64748B]">&bull;</span>
+            <a href="/sitemap.xml" className="py-2.5 px-2 text-[#94A3B8] hover:text-white underline-offset-4 hover:underline transition-colors inline-block">Sitemap</a>
           </div>
         </div>
 

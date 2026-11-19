@@ -204,6 +204,7 @@ export default function RootLayout({
         <meta name="geo.placename" content="Nashik" />
         <meta name="geo.position" content="19.9975;73.7898" />
         <meta name="ICBM" content="19.9975, 73.7898" />
+        <link rel="alternate" type="text/markdown" href="/llms.txt" title="LLM context" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />

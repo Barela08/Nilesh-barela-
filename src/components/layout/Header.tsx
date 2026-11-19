@@ -261,16 +261,16 @@ export default function Header() {
             </Link>
           </div>
 
-          <div className="flex items-center lg:hidden space-x-2">
+          <div className="flex items-center lg:hidden space-x-2.5">
             <Link
               href="/request-quote"
-              className="text-xs font-mono font-bold px-3 py-1.5 rounded-md bg-[#00E676] text-[#080B12]"
+              className="min-h-[44px] min-w-[44px] text-xs font-mono font-bold px-3.5 py-2.5 rounded-lg bg-[#00E676] text-[#080B12] flex items-center justify-center shadow-sm"
             >
               Quote
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-[#0F1624] border border-[#1E293B] text-white hover:text-[#00E676] focus:outline-none"
+              className="min-h-[44px] min-w-[44px] p-2.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-white hover:text-[#00E676] focus:outline-none flex items-center justify-center"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
