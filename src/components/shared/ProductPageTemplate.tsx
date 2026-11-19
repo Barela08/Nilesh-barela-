@@ -46,16 +46,55 @@ export default function ProductPageTemplate({ product }: Props) {
     },
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: company.websiteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Products & Solutions',
+        item: `${company.websiteUrl}/products`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.title,
+        item: `${company.websiteUrl}${product.path}`,
+      },
+    ],
+  };
+
   return (
     <div className="bg-[#080B12] text-[#E8EDF5] min-h-screen pt-32 pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-8 pb-16 border-b border-[#1E293B]">
+      <section className="relative overflow-hidden pt-4 pb-16 border-b border-[#1E293B]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Visual Breadcrumbs */}
+          <nav aria-label="Breadcrumb" className="mb-6 flex items-center space-x-2 text-xs font-mono text-[#9AA3B8]">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <span>/</span>
+            <Link href="/products" className="hover:text-white transition-colors">Products</Link>
+            <span>/</span>
+            <span className="text-[#38BDF8]">{product.title}</span>
+          </nav>
+
           <div className="max-w-3xl space-y-4">
             
             <div className="flex flex-wrap items-center gap-2">

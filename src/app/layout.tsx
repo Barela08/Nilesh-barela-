@@ -69,10 +69,10 @@ export const metadata: Metadata = {
       'HackifyPro provides website development, Android app development, web applications and custom software solutions for businesses. Discuss your project with Nilesh Barela and the team.',
     images: [
       {
-        url: `${company.websiteUrl}/assets/hackifypro-banner.png`,
+        url: `${company.websiteUrl}/assets/hackifypro-og.png`,
         width: 1200,
         height: 630,
-        alt: 'HackifyPro IT Solutions & Software Development',
+        alt: 'HackifyPro - Websites, Android Apps & Custom Business Software',
       },
     ],
   },
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     title: 'HackifyPro | Website, Android App & Custom Software Development Company',
     description:
       'Building Powerful Digital Solutions for Modern Businesses. Websites, Android apps, custom software, and digital innovation in Nashik, Maharashtra.',
-    images: [`${company.websiteUrl}/assets/hackifypro-banner.png`],
+    images: [`${company.websiteUrl}/assets/hackifypro-og.png`],
   },
   icons: {
     icon: '/favicon.ico',

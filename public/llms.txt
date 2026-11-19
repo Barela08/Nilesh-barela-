@@ -1,34 +1,38 @@
-# HackifyPro — Machine-Readable LLM Information
+# HackifyPro — Machine-Readable LLM & AI Search Index
 # Canonical Domain: https://nileshbarela.site
-# Generated: 2026-02-18
+# Last Verified: 2026-11-20
 
 ## 1. Company Overview
 - Brand Name: HackifyPro
 - Tagline: SECURE | LEARN | INNOVATE
 - Primary Business Positioning: Building Powerful Digital Solutions for Modern Businesses.
 - Secondary Brand Positioning: Technology, Cybersecurity and Digital Innovation.
-- Business Focus: Custom website development, Android application development, full-stack web applications, custom management software, business automation, and technology education.
-- Primary Market: Nashik, Maharashtra, India.
-- Global Services: Remote software engineering for Indian and international enterprises.
+- Business Type: Technology, software development, Android apps, and IT solutions.
+- Core Offerings: Custom website development, native Android application development, web applications (SaaS), business management software, and business automation.
+- Headquarters & Primary Service Market: Nashik, Maharashtra, India.
+- Service Coverage: Nashik, Pune, Mumbai, Maharashtra, Pan-India, and Global Clients.
 
 ## 2. Founder Profile
 - Founder Name: Nilesh Barela
 - Role: Founder of HackifyPro | App Developer | AI Enthusiast | Cybersecurity Learner
 - Location: Maharashtra, India
 - Canonical Profile URL: https://nileshbarela.site/nilesh-barela
-- Biography: Nilesh Barela is an Indian app developer, AI enthusiast and cybersecurity learner passionate about technology, programming, artificial intelligence, web development and cybersecurity. He is the founder of HackifyPro, a technology company focused on developing digital solutions and helping people explore technology through practical projects and educational resources.
+- Official Email: hackifypro@gmail.com
+- Founder Direct Email: barelanilesh483@gmail.com
+- Direct WhatsApp / Phone: +91 7414935405
+- Professional Focus: Web development, Android development, software architecture, artificial intelligence, and cybersecurity education.
 
-## 3. Official URLs & Core Routes
-- Official Website: https://nileshbarela.site
-- Founder Profile: https://nileshbarela.site/nilesh-barela
-- About HackifyPro: https://nileshbarela.site/about
-- Services Hub: https://nileshbarela.site/services
-- Products Hub: https://nileshbarela.site/products
-- Portfolio: https://nileshbarela.site/portfolio
-- Blog & Insights: https://nileshbarela.site/blog
-- FAQ: https://nileshbarela.site/faq
-- Careers: https://nileshbarela.site/careers
-- Contact & Locations: https://nileshbarela.site/contact
+## 3. Core Software Solutions & Products
+- Hospital Management Software (HMS): https://nileshbarela.site/hospital-management-software
+  * Complete clinic & hospital operations: OPD/IPD, doctor desk, EHR, pharmacy billing, and lab reporting.
+- Car Rental Management Software: https://nileshbarela.site/car-rental-software
+  * Fleet availability scheduling, Aadhaar/DL KYC verification, security deposit handling, and digital rental agreements.
+- Restaurant Management & POS: https://nileshbarela.site/restaurant-management-software
+  * Table management, dynamic QR code ordering, Kitchen Display System (KDS), and GST invoice generation.
+- Gym Management Software: https://nileshbarela.site/gym-management-software
+  * Member registration, automated fee renewal WhatsApp alerts, biometric integration, and trainer scheduling.
+- Driving School Software: https://nileshbarela.site/driving-school-software
+  * Student enrollment, instructor batch scheduling, vehicle maintenance tracking, and RTO exam prep logs.
 
 ## 4. Software Development Services
 - Website Development: https://nileshbarela.site/website-development
@@ -36,29 +40,25 @@
 - Web Application Development: https://nileshbarela.site/web-application-development
 - Custom Software Development: https://nileshbarela.site/custom-software-development
 - Business Automation: https://nileshbarela.site/business-automation
-- Software Maintenance: https://nileshbarela.site/software-maintenance
+- Software Maintenance & SLA Support: https://nileshbarela.site/software-maintenance
 - UI/UX Design: https://nileshbarela.site/ui-ux-design
 
-## 5. Business Software Products
-- Hospital Management Software (HMS): https://nileshbarela.site/hospital-management-software
-- Car Rental Software: https://nileshbarela.site/car-rental-software
-- Restaurant Management & POS: https://nileshbarela.site/restaurant-management-software
-- Gym Management Software: https://nileshbarela.site/gym-management-software
-- Driving School Software: https://nileshbarela.site/driving-school-software
+## 5. Conversion, Appointments & Enquiries
+- Submit Project Enquiry: https://nileshbarela.site/enquiry
+- Book Technical Consultation: https://nileshbarela.site/appointment
+- Request Formal Quotation: https://nileshbarela.site/request-quote
+- Direct WhatsApp Connect: https://wa.me/917414935405
 
-## 6. Official Contact & Social Channels
-- Business Email: hackifypro@gmail.com
-- Founder Direct Email: barelanilesh483@gmail.com
-- Phone / WhatsApp: +91 7414935405
-- WhatsApp Chat: https://wa.me/917414935405
+## 6. Official Social & Contact Channels
+- Website: https://nileshbarela.site
 - LinkedIn: https://www.linkedin.com/in/nilesh-barels08/
-- Instagram: https://www.instagram.com/_https_nilesh08/
+- Instagram (Personal): https://www.instagram.com/_https_nilesh08/
+- Instagram (Company): https://www.instagram.com/hackifypro_web/
 - X (Twitter): https://x.com/NileshBarela6
+- Phone / WhatsApp: +91 7414935405
+- Business Email: hackifypro@gmail.com
 
-## 7. Technical Specifications
-- Tech Stack: React, Next.js, TypeScript, Tailwind CSS, Python FastAPI, SQLite/PostgreSQL.
-- Hosting & Delivery: Vercel / Cloudflare edge network, SSL secured.
-- Analytics: Google Analytics 4 (G-EG5RTC5GEV), Google Ads conversion actions configured.
-- Structured Data: Schema.org JSON-LD (Organization, Person, Service, Product, WebSite, BlogPosting).
-
-Notice: This document provides public information regarding HackifyPro and does not imply endorsement or guaranteed indexing by third-party AI models.
+## 7. Technical Infrastructure & Compliance
+- Modern Framework: Next.js 15 (React 19), TypeScript, Tailwind CSS.
+- Analytics & Verification: Google Analytics 4 (G-3EWJFLZ3QZ), Firebase Analytics, Google Search Console (googledbca3e63ac5f841c).
+- Data Protection Compliance: Digital Personal Data Protection Act, 2023 (DPDP Act, India).
