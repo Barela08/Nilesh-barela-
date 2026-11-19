@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'UI/UX Design Services in Nashik | HackifyPro',
   description: 'Professional UI/UX design services in Nashik and Maharashtra by HackifyPro. User research, mobile-first wireframing, design systems, and conversion UI.',
   alternates: {
-    canonical: 'https://nileshbarela.site/ui-ux-design',
+    canonical: 'https://www.nileshbarela.site/ui-ux-design',
   },
 };
 

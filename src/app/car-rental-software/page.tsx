@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Car Rental Software & Fleet Management System | HackifyPro',
   description: 'Comprehensive Car Rental Management Software by HackifyPro. Manage fleet availability, customer bookings, KYC verification, security deposits, and trip reports.',
   alternates: {
-    canonical: 'https://nileshbarela.site/car-rental-software',
+    canonical: 'https://www.nileshbarela.site/car-rental-software',
   },
 };
 

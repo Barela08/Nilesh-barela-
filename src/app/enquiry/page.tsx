@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Project Enquiry & Consultation | HackifyPro',
   description: 'Submit your software development, web app, or mobile app project enquiry to HackifyPro. Fast response within 24 business hours.',
   alternates: {
-    canonical: 'https://nileshbarela.site/enquiry',
+    canonical: 'https://www.nileshbarela.site/enquiry',
   },
 };
 

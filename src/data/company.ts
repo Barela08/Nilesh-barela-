@@ -1,7 +1,7 @@
 export const company = {
   name: "HackifyPro",
   legalName: "HackifyPro",
-  websiteUrl: "https://nileshbarela.site",
+  websiteUrl: "https://www.nileshbarela.site",
   tagline: "SECURE | LEARN | INNOVATE",
   primaryPositioning: "Building Powerful Digital Solutions for Modern Businesses.",
   secondaryPositioning: "Technology, Cybersecurity and Digital Innovation.",
@@ -11,7 +11,7 @@ export const company = {
     name: "Nilesh Barela",
     role: "Founder of HackifyPro | App Developer | AI Enthusiast | Cybersecurity Learner",
     location: "Maharashtra, India",
-    profileUrl: "https://nileshbarela.site/nilesh-barela",
+    profileUrl: "https://www.nileshbarela.site/nilesh-barela",
     emails: [
       "hackifypro@gmail.com",
       "barelanilesh483@gmail.com"

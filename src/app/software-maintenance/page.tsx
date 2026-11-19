@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Software Maintenance & Support in Nashik | HackifyPro',
   description: 'Comprehensive software maintenance services in Nashik by HackifyPro. Security patches, performance tuning, bug fixing, and continuous technical support.',
   alternates: {
-    canonical: 'https://nileshbarela.site/software-maintenance',
+    canonical: 'https://www.nileshbarela.site/software-maintenance',
   },
 };
 

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Careers & Collaboration | HackifyPro',
   description: 'Join HackifyPro in building digital products, learning modern web architectures, and innovating technology for modern businesses.',
   alternates: {
-    canonical: 'https://nileshbarela.site/careers',
+    canonical: 'https://www.nileshbarela.site/careers',
   },
 };
 

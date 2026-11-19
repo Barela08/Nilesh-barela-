@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Book a Consultation & Project Discovery | HackifyPro',
   description: 'Schedule a free 30-minute discovery consultation with Nilesh Barela and the HackifyPro engineering team to discuss your software, web, or mobile app project.',
   alternates: {
-    canonical: 'https://nileshbarela.site/appointment',
+    canonical: 'https://www.nileshbarela.site/appointment',
   },
 };
 

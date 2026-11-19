@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Cookie Policy | HackifyPro',
   description: 'How HackifyPro uses cookies and local session storage on our website.',
   alternates: {
-    canonical: 'https://nileshbarela.site/cookie-policy',
+    canonical: 'https://www.nileshbarela.site/cookie-policy',
   },
 };
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Gym Management Software & Member Portal | HackifyPro',
   description: 'Comprehensive Gym Management Software by HackifyPro. Manage member subscriptions, biometric attendance, renewal WhatsApp alerts, and trainer scheduling.',
   alternates: {
-    canonical: 'https://nileshbarela.site/gym-management-software',
+    canonical: 'https://www.nileshbarela.site/gym-management-software',
   },
 };
 

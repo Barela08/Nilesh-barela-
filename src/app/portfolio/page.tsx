@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: 'Portfolio & Software Projects | HackifyPro',
   description: 'Explore real-world software solutions, web applications, and digital platforms engineered by HackifyPro.',
   alternates: {
-    canonical: 'https://nileshbarela.site/portfolio',
+    canonical: 'https://www.nileshbarela.site/portfolio',
   },
 };
 

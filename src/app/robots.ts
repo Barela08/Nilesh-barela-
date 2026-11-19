@@ -16,6 +16,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://nileshbarela.site/sitemap.xml',
+    sitemap: 'https://www.nileshbarela.site/sitemap.xml',
   };
 }

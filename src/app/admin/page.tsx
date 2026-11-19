@@ -972,7 +972,7 @@ export default function AdminDashboardPage() {
                   type="text"
                   value={projectForm.demoUrl}
                   onChange={(e) => setProjectForm({ ...projectForm, demoUrl: e.target.value })}
-                  placeholder="e.g. https://demo.hackifypro.com or https://nileshbarela.site"
+                  placeholder="e.g. https://demo.hackifypro.com or https://www.nileshbarela.site"
                   className="w-full bg-[#0F1624] border border-[#1E293B] rounded-lg px-4 py-2.5 text-white font-mono focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676]"
                 />
                 <p className="text-[11px] text-[#9AA3B8]">

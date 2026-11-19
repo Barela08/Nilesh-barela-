@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Business Software Solutions & Management Systems | HackifyPro',
   description: 'Explore turnkey business management software solutions developed by HackifyPro for healthcare, car rentals, restaurants, gyms, and driving schools.',
   alternates: {
-    canonical: 'https://nileshbarela.site/products',
+    canonical: 'https://www.nileshbarela.site/products',
   },
 };
 

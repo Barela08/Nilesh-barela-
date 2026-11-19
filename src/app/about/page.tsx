@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'About HackifyPro | Technology & Digital Solutions',
   description: 'Learn about HackifyPro, our mission to build powerful digital solutions for modern businesses, and our core motto: SECURE | LEARN | INNOVATE.',
   alternates: {
-    canonical: 'https://nileshbarela.site/about',
+    canonical: 'https://www.nileshbarela.site/about',
   },
 };
 

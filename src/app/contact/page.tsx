@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Contact HackifyPro | Software Development in Nashik & Maharashtra',
   description: 'Get in touch with HackifyPro for website development, Android applications, and custom software. Reach out via email, phone, WhatsApp or visit our Nashik hub.',
   alternates: {
-    canonical: 'https://nileshbarela.site/contact',
+    canonical: 'https://www.nileshbarela.site/contact',
   },
 };
 

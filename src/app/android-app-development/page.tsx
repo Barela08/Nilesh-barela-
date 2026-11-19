@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Android App Development in Nashik | Mobile Apps | HackifyPro',
   description: 'Custom Android app development in Nashik and Maharashtra by HackifyPro. Secure, feature-rich, high-performance mobile apps for businesses and startups.',
   alternates: {
-    canonical: 'https://nileshbarela.site/android-app-development',
+    canonical: 'https://www.nileshbarela.site/android-app-development',
   },
 };
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Software Development & IT Services | HackifyPro',
   description: 'Explore the full suite of software development, mobile application, web engineering, and automation services offered by HackifyPro.',
   alternates: {
-    canonical: 'https://nileshbarela.site/services',
+    canonical: 'https://www.nileshbarela.site/services',
   },
 };
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy & DPDP Act 2023 Compliance | HackifyPro',
   description: 'HackifyPro Privacy Policy, Data Protection Notice, and affirmative consent disclosures in compliance with the Digital Personal Data Protection Act, 2023 (DPDP Act, India).',
   alternates: {
-    canonical: 'https://nileshbarela.site/privacy-policy',
+    canonical: 'https://www.nileshbarela.site/privacy-policy',
   },
 };
 

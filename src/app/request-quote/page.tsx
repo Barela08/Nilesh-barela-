@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Request a Quote & Project Proposal | HackifyPro',
   description: 'Request an itemized technical proposal and quotation for website development, Android app development, or custom enterprise software from HackifyPro.',
   alternates: {
-    canonical: 'https://nileshbarela.site/request-quote',
+    canonical: 'https://www.nileshbarela.site/request-quote',
   },
 };
 

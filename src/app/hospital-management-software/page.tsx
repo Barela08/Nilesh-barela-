@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Hospital Management Software (HMS) | HackifyPro',
   description: 'Comprehensive Hospital Management Software by HackifyPro. Manage OPD, IPD, doctor scheduling, electronic medical records, pharmacy, and patient billing.',
   alternates: {
-    canonical: 'https://nileshbarela.site/hospital-management-software',
+    canonical: 'https://www.nileshbarela.site/hospital-management-software',
   },
 };
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Driving School Management Software in Nashik | HackifyPro',
   description: 'Specialized Driving School Software by HackifyPro. Manage student registrations, practical driving slots, instructor assignments, and RTO test schedules.',
   alternates: {
-    canonical: 'https://nileshbarela.site/driving-school-software',
+    canonical: 'https://www.nileshbarela.site/driving-school-software',
   },
 };
 

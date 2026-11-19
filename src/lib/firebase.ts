@@ -22,3 +22,18 @@ export function getDb(): Firestore | null {
     return null;
   }
 }
+
+export async function initAnalytics(): Promise<any | null> {
+  if (typeof window !== 'undefined') {
+    try {
+      const { getAnalytics, isSupported } = await import('firebase/analytics');
+      const supported = await isSupported().catch(() => false);
+      if (supported) {
+        return getAnalytics(app);
+      }
+    } catch (err) {
+      console.debug('[Firebase Analytics] Not supported or blocked in this environment:', err);
+    }
+  }
+  return null;
+}

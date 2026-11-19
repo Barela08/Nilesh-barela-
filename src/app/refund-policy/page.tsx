@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Refund & Cancellation Policy | HackifyPro',
   description: 'HackifyPro policy regarding software development deposits, milestone payments, and cancellations.',
   alternates: {
-    canonical: 'https://nileshbarela.site/refund-policy',
+    canonical: 'https://www.nileshbarela.site/refund-policy',
   },
 };
 

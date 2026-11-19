@@ -10,12 +10,12 @@ import { initAnalytics } from '@/lib/firebase';
 export default function FirebaseAnalytics() {
   useEffect(() => {
     initAnalytics()
-      .then((analytics) => {
+      .then((analytics: any) => {
         if (analytics) {
-          console.log('[Firebase Analytics] Initialized successfully with measurementId G-3EWJFLZ3QZ');
+          console.log('[Firebase Analytics] Initialized successfully');
         }
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.debug('[Firebase Analytics] Note:', err);
       });
   }, []);

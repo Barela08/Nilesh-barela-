@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Business Automation Services in Nashik | HackifyPro',
   description: 'Streamline operations with custom business automation solutions in Nashik by HackifyPro. Automated WhatsApp messaging, lead routing, and CRM sync.',
   alternates: {
-    canonical: 'https://nileshbarela.site/business-automation',
+    canonical: 'https://www.nileshbarela.site/business-automation',
   },
 };
 

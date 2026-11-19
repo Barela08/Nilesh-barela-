@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Restaurant POS & Management Software in Nashik | HackifyPro',
   description: 'All-in-one Restaurant POS and Management Software by HackifyPro. Features QR digital ordering, KDS, table management, recipe inventory, and GST billing.',
   alternates: {
-    canonical: 'https://nileshbarela.site/restaurant-management-software',
+    canonical: 'https://www.nileshbarela.site/restaurant-management-software',
   },
 };
 

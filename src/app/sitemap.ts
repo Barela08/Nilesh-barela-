@@ -4,7 +4,7 @@ import { productsData } from '@/data/products';
 import { blogPosts } from '@/data/blog';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://nileshbarela.site';
+  const baseUrl = 'https://www.nileshbarela.site';
   const now = new Date();
 
   // Core static pages

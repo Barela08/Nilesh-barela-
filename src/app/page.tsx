@@ -50,19 +50,19 @@ export const metadata: Metadata = {
     'HackifyPro',
   ],
   alternates: {
-    canonical: 'https://nileshbarela.site',
+    canonical: 'https://www.nileshbarela.site',
   },
   openGraph: {
     title: 'HackifyPro | Website, Android App & Custom Software Development Company',
     description:
       'We build high-performance business websites, Android apps, and specialized ERP software (Hospital, Restaurant, Car Rental, Gym) for businesses in Nashik and across India.',
-    url: 'https://nileshbarela.site',
+    url: 'https://www.nileshbarela.site',
     siteName: 'HackifyPro',
     locale: 'en_IN',
     type: 'website',
     images: [
       {
-        url: 'https://nileshbarela.site/assets/hackifypro-banner.png',
+        url: 'https://www.nileshbarela.site/assets/hackifypro-banner.png',
         width: 1200,
         height: 630,
         alt: 'HackifyPro Software Development & IT Solutions',
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     title: 'HackifyPro | Website, Android App & Custom Software Development Company',
     description:
       'We build high-performance business websites, Android apps, and specialized ERP software (Hospital, Restaurant, Car Rental, Gym) for businesses in Nashik and across India.',
-    images: ['https://nileshbarela.site/assets/hackifypro-banner.png'],
+    images: ['https://www.nileshbarela.site/assets/hackifypro-banner.png'],
   },
 };
 

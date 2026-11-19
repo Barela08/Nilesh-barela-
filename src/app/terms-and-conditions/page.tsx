@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Terms & Conditions | HackifyPro',
   description: 'Terms and conditions governing the use of HackifyPro software development services and website.',
   alternates: {
-    canonical: 'https://nileshbarela.site/terms-and-conditions',
+    canonical: 'https://www.nileshbarela.site/terms-and-conditions',
   },
 };
 
@@ -25,7 +25,7 @@ export default function TermsPage() {
         <section className="space-y-4 text-sm text-[#9AA3B8] leading-relaxed">
           <h2 className="text-lg font-heading font-bold text-white">1. Agreement to Terms</h2>
           <p>
-            By accessing https://nileshbarela.site or engaging HackifyPro for website development, mobile application engineering, or custom software solutions, you agree to comply with and be bound by these Terms and Conditions.
+            By accessing https://www.nileshbarela.site or engaging HackifyPro for website development, mobile application engineering, or custom software solutions, you agree to comply with and be bound by these Terms and Conditions.
           </p>
         </section>
 

@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     'Cybersecurity Education',
     'SECURE LEARN INNOVATE',
   ],
-  authors: [{ name: 'Nilesh Barela', url: 'https://nileshbarela.site/nilesh-barela' }],
+  authors: [{ name: 'Nilesh Barela', url: 'https://www.nileshbarela.site/nilesh-barela' }],
   creator: 'Nilesh Barela',
   publisher: 'HackifyPro',
   alternates: {

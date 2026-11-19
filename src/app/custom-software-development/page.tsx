@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Custom Software Development in Nashik | HackifyPro',
   description: 'Custom software development in Nashik & Maharashtra by HackifyPro. Bespoke management software, workflow automation, and specialized business tools.',
   alternates: {
-    canonical: 'https://nileshbarela.site/custom-software-development',
+    canonical: 'https://www.nileshbarela.site/custom-software-development',
   },
 };
 

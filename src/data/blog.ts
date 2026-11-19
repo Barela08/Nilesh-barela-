@@ -40,7 +40,7 @@ export const blogPosts: BlogPost[] = [
     readingTime: "5 min read",
     metaTitle: "Modern Website Architecture for Local Businesses | HackifyPro",
     metaDesc: "Learn how modern website architecture, sub-second load times, and technical SEO drive real customer acquisition for growing businesses.",
-    canonicalUrl: "https://nileshbarela.site/blog/modern-website-architecture-for-local-businesses"
+    canonicalUrl: "https://www.nileshbarela.site/blog/modern-website-architecture-for-local-businesses"
   },
   {
     slug: "practical-cybersecurity-checklist-for-growing-enterprises",
@@ -65,7 +65,7 @@ export const blogPosts: BlogPost[] = [
     readingTime: "6 min read",
     metaTitle: "Practical Cybersecurity Checklist for Growing Enterprises | HackifyPro",
     metaDesc: "Essential cybersecurity practices every business owner must implement to safeguard customer records, databases, and operational integrity.",
-    canonicalUrl: "https://nileshbarela.site/blog/practical-cybersecurity-checklist-for-growing-enterprises"
+    canonicalUrl: "https://www.nileshbarela.site/blog/practical-cybersecurity-checklist-for-growing-enterprises"
   },
   {
     slug: "custom-software-vs-off-the-shelf-saas",
@@ -89,7 +89,7 @@ export const blogPosts: BlogPost[] = [
     readingTime: "7 min read",
     metaTitle: "Custom Software vs. Off-The-Shelf SaaS | HackifyPro",
     metaDesc: "Compare the long-term ROI, scalability, and operational freedom of custom software development against recurring SaaS subscription platforms.",
-    canonicalUrl: "https://nileshbarela.site/blog/custom-software-vs-off-the-shelf-saas"
+    canonicalUrl: "https://www.nileshbarela.site/blog/custom-software-vs-off-the-shelf-saas"
   },
   {
     slug: "building-real-world-android-apps-in-2026",
@@ -113,6 +113,6 @@ export const blogPosts: BlogPost[] = [
     readingTime: "5 min read",
     metaTitle: "Building Real-World Android Apps in 2026 | HackifyPro",
     metaDesc: "Technical insights into modern Android application development: offline-first architectures, Kotlin coroutines, and Google Play Store compliance.",
-    canonicalUrl: "https://nileshbarela.site/blog/building-real-world-android-apps-in-2026"
+    canonicalUrl: "https://www.nileshbarela.site/blog/building-real-world-android-apps-in-2026"
   }
 ];

@@ -78,7 +78,7 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     techStack: ["Next.js 15", "React 19", "TypeScript", "Tailwind CSS", "Node.js API", "JSON Database"],
     image: "/assets/hackifypro-storefront.png",
-    demoUrl: "https://nileshbarela.site",
+    demoUrl: "https://www.nileshbarela.site",
     hasDemo: true,
     status: "Production Ready"
   }

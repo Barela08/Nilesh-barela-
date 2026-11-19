@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Web Application Development Company in Nashik | HackifyPro',
   description: 'Custom web application development in Nashik, Maharashtra by HackifyPro. Enterprise SaaS, admin portals, and multi-user workflow systems.',
   alternates: {
-    canonical: 'https://nileshbarela.site/web-application-development',
+    canonical: 'https://www.nileshbarela.site/web-application-development',
   },
 };
 
