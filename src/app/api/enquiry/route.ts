@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { dbEnquiries } from '@/lib/db';
 import { checkRateLimit, checkDuplicateSubmission } from '@/lib/rateLimit';
 import { notifyNewLead } from '@/lib/notifications';
+import { getClientIp, cleanText, isValidEmail, isValidPhone, sanitizeHtml } from '@/lib/security';
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+    const ip = getClientIp(req);
 
-    // 1. Rate Limit Check
+    // 1. Rate Limit Check (Max 5 requests per 10 mins per IP)
     const rateCheck = checkRateLimit(ip, 5, 10 * 60 * 1000);
     if (!rateCheck.allowed) {
       return NextResponse.json(
@@ -16,10 +17,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { name, email, phone, company, interestedService, budgetRange, timeline, message } = body;
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid submission data.' }, { status: 400 });
+    }
 
-    // 2. Validate
+    // 2. Anti-Bot Honeypot Trap
+    if (body.hp_website_trap || body.b_url) {
+      return NextResponse.json({ error: 'Bot activity detected.' }, { status: 400 });
+    }
+
+    // 3. Strict Input Sanitization & Bounds Checking
+    const name = cleanText(body.name, 100);
+    const email = cleanText(body.email, 120).toLowerCase();
+    const phone = cleanText(body.phone, 25);
+    const company = body.company ? cleanText(body.company, 120) : undefined;
+    const interestedService = cleanText(body.interestedService || 'General Inquiry', 100);
+    const budgetRange = body.budgetRange ? cleanText(body.budgetRange, 60) : undefined;
+    const timeline = body.timeline ? cleanText(body.timeline, 60) : undefined;
+    const message = cleanText(body.message, 3000);
+
+    // 4. Validate Required Fields
     if (!name || !email || !phone || !message) {
       return NextResponse.json(
         { error: 'Name, email, phone, and message are required fields.' },
@@ -27,8 +45,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Duplicate Prevention
-    const hash = `${email.toLowerCase()}_${phone}_${message.slice(0, 30)}`;
+    // 5. Strict Email & Phone Format Validation
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address.' },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidPhone(phone)) {
+      return NextResponse.json(
+        { error: 'Please enter a valid phone number (e.g. +91 9876543210).' },
+        { status: 400 }
+      );
+    }
+
+    // 6. Duplicate Prevention Lock
+    const hash = `${email}_${phone}_${message.slice(0, 30)}`;
     if (checkDuplicateSubmission(ip, hash, 60 * 1000)) {
       return NextResponse.json(
         { error: 'A duplicate enquiry has already been recorded. Our team will contact you shortly.' },
@@ -36,20 +69,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Record to Database
+    // 7. Record Sanitized Data
     const enquiry = dbEnquiries.create({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim(),
-      company: company ? company.trim() : undefined,
-      interestedService: interestedService || 'General Inquiry',
-      budgetRange,
-      timeline,
-      message: message.trim(),
+      name: sanitizeHtml(name),
+      email: email,
+      phone: sanitizeHtml(phone),
+      company: company ? sanitizeHtml(company) : undefined,
+      interestedService: sanitizeHtml(interestedService),
+      budgetRange: budgetRange ? sanitizeHtml(budgetRange) : undefined,
+      timeline: timeline ? sanitizeHtml(timeline) : undefined,
+      message: sanitizeHtml(message),
       ipAddress: ip,
     });
 
-    // 5. Notify Team
+    // 8. Notify Team
     await notifyNewLead('Enquiry', enquiry);
 
     return NextResponse.json({
@@ -58,9 +91,8 @@ export async function POST(req: NextRequest) {
       message: 'Enquiry submitted successfully.',
     });
   } catch (error: any) {
-    console.error('Error handling enquiry:', error);
     return NextResponse.json(
-      { error: 'Failed to process enquiry.' },
+      { error: 'Failed to process enquiry. Please try again shortly.' },
       { status: 500 }
     );
   }

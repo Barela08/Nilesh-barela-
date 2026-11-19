@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbAppointments, dbEnquiries, dbQuotes } from '@/lib/db';
+import { authenticateAdminRequest, cleanText } from '@/lib/security';
 
 export async function GET(req: NextRequest) {
   try {
+    // 1. Mandatory Admin Authentication
+    if (!authenticateAdminRequest(req)) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Admin session required.' },
+        { status: 401 }
+      );
+    }
+
     const appointments = dbAppointments.getAll();
     const enquiries = dbEnquiries.getAll();
     const quotes = dbQuotes.getAll();
@@ -28,7 +37,23 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { type, id, status, notes } = await req.json();
+    // 1. Mandatory Admin Authentication
+    if (!authenticateAdminRequest(req)) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Admin session required.' },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+    }
+
+    const type = cleanText(body.type, 20).toLowerCase();
+    const id = cleanText(body.id, 50);
+    const status = cleanText(body.status, 30);
+    const notes = body.notes !== undefined ? cleanText(body.notes, 500) : undefined;
 
     if (!type || !id || !status) {
       return NextResponse.json({ error: 'Missing type, id, or status' }, { status: 400 });
@@ -36,11 +61,11 @@ export async function PATCH(req: NextRequest) {
 
     let updated = null;
     if (type === 'appointment') {
-      updated = dbAppointments.updateStatus(id, status, notes);
+      updated = dbAppointments.updateStatus(id, status as any, notes);
     } else if (type === 'enquiry') {
-      updated = dbEnquiries.updateStatus(id, status, notes);
+      updated = dbEnquiries.updateStatus(id, status as any, notes);
     } else if (type === 'quote') {
-      updated = dbQuotes.updateStatus(id, status, notes);
+      updated = dbQuotes.updateStatus(id, status as any, notes);
     }
 
     if (!updated) {

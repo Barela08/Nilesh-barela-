@@ -91,10 +91,17 @@ export default function AdminDashboardPage() {
 
   const fetchLeads = async () => {
     try {
-      const res = await fetch('/api/admin/leads');
+      const token = localStorage.getItem('hp_admin_token') || '';
+      const res = await fetch('/api/admin/leads', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (res.ok) {
         const json = await res.json();
         setLeadsData(json.data);
+      } else if (res.status === 401) {
+        handleLogout();
       }
     } catch (err) {
       console.error('Failed to fetch leads', err);
@@ -104,9 +111,13 @@ export default function AdminDashboardPage() {
   const handleStatusChange = async (type: string, id: string, newStatus: string) => {
     setUpdatingId(id);
     try {
+      const token = localStorage.getItem('hp_admin_token') || '';
       const res = await fetch('/api/admin/leads', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ type, id, status: newStatus }),
       });
       if (res.ok) {

@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { authenticateAdminRequest } from '@/lib/security';
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Mandatory Admin Authentication
+    if (!authenticateAdminRequest(req)) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Admin credentials required to send test emails.' },
+        { status: 401 }
+      );
+    }
+
     const host = process.env.SMTP_HOST || 'smtp.gmail.com';
     const port = parseInt(process.env.SMTP_PORT || '465', 10);
     const user = process.env.SMTP_USER || process.env.BUSINESS_EMAIL || 'hackifypro@gmail.com';
@@ -13,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { 
           success: false, 
-          message: 'SMTP_PASS is not set in .env.local. Please generate a 16-character Google App Password and add it to .env.local.' 
+          message: 'SMTP_PASS is not set in environment.' 
         },
         { status: 400 }
       );
@@ -27,10 +36,8 @@ export async function POST(req: NextRequest) {
       tls: { rejectUnauthorized: false },
     });
 
-    // 1. Verify credentials with SMTP server
     await transporter.verify();
 
-    // 2. Send test email
     const info = await transporter.sendMail({
       from: `"HackifyPro System" <${user}>`,
       to: businessEmail,
@@ -39,7 +46,7 @@ export async function POST(req: NextRequest) {
       html: `
         <div style="font-family: sans-serif; padding: 20px; background-color: #05070C; color: #E8EDF5; border-radius: 8px;">
           <h2 style="color: #00E676;">Email Notifications are Working!</h2>
-          <p>Your SMTP configuration has been successfully verified. When clients submit an appointment booking, quote, or enquiry, you will receive real-time email notifications.</p>
+          <p>Your SMTP configuration has been successfully verified.</p>
           <p style="color: #9AA3B8; font-size: 12px;">Sent from HackifyPro Web Platform &bull; ${new Date().toISOString()}</p>
         </div>
       `,
@@ -51,11 +58,10 @@ export async function POST(req: NextRequest) {
       messageId: info.messageId,
     });
   } catch (error: any) {
-    console.error('Test email failed:', error);
     return NextResponse.json(
       { 
         success: false, 
-        message: error.message || 'Failed to authenticate with SMTP server.' 
+        message: 'Failed to authenticate with SMTP server.' 
       },
       { status: 500 }
     );

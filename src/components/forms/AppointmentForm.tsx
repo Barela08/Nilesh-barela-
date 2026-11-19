@@ -26,12 +26,17 @@ export default function AppointmentForm({ defaultService = '' }: { defaultServic
     preferredTime: '11:00 AM - 12:00 PM',
     projectBudget: '₹25,000 - ₹50,000',
     projectDescription: '',
-    consent: true,
+    dpdpConsent: false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,6 +45,11 @@ export default function AppointmentForm({ defaultService = '' }: { defaultServic
 
     if (!formData.fullName.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.projectDescription.trim()) {
       setError('Please fill in all required fields.');
+      return;
+    }
+
+    if (!formData.dpdpConsent) {
+      setError('Under the Digital Personal Data Protection Act (DPDP Act, 2023), your explicit affirmative consent is required. Please check the consent box below.');
       return;
     }
 
@@ -234,6 +244,31 @@ export default function AppointmentForm({ defaultService = '' }: { defaultServic
           placeholder="Briefly describe what you want to build, key features needed, and your expected launch timeline..."
           className="w-full bg-[#080B12] border border-[#1E293B] rounded-lg px-4 py-3 text-sm text-white placeholder-[#64748B] focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-colors"
         ></textarea>
+      </div>
+
+      {/* DPDP Act 2023 Explicit Consent Box */}
+      <div className="p-4 rounded-xl bg-[#0F1624] border border-[#1E293B] space-y-3">
+        <div className="flex items-center space-x-2 text-xs font-mono text-[#00E676]">
+          <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+          <span className="font-semibold uppercase tracking-wider">DPDP Act, 2023 Notice &amp; Consent</span>
+        </div>
+        <p className="text-[11px] text-[#9AA3B8] leading-relaxed">
+          We collect your name, email, phone number, and meeting requirements solely to coordinate and conduct this technical discovery session. Under the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act)</strong>, your data is processed only with your explicit consent and will never be shared with third parties. You maintain full rights to access, rectify, erase, or withdraw consent at any time via <a href="mailto:hackifypro@gmail.com" className="text-[#00E676] hover:underline">hackifypro@gmail.com</a>.
+        </p>
+        <div className="pt-2 border-t border-[#1E293B]/70 flex items-start space-x-3">
+          <input
+            type="checkbox"
+            id="apptDpdpConsent"
+            name="dpdpConsent"
+            required
+            checked={formData.dpdpConsent}
+            onChange={handleChange}
+            className="mt-0.5 h-4 w-4 rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12] cursor-pointer"
+          />
+          <label htmlFor="apptDpdpConsent" className="text-xs text-[#E8EDF5] leading-snug cursor-pointer select-none">
+            I voluntarily provide my contact details and give explicit consent under the DPDP Act, 2023 to HackifyPro for scheduling and conducting this consultation in accordance with the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#00E676] underline hover:text-[#00c853]">Privacy Policy</a>. <span className="text-[#00E676]">*</span>
+          </label>
+        </div>
       </div>
 
       <div className="flex items-start space-x-2 text-xs text-[#9AA3B8]">

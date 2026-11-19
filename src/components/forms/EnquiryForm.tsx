@@ -20,7 +20,7 @@ export default function EnquiryForm({ defaultService = '' }: { defaultService?: 
     budgetRange: '₹25,000 - ₹50,000',
     timeline: '1-2 Weeks',
     message: '',
-    privacyConsent: true,
+    privacyConsent: false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -43,7 +43,7 @@ export default function EnquiryForm({ defaultService = '' }: { defaultService?: 
     }
 
     if (!formData.privacyConsent) {
-      setError('Please agree to the privacy policy to submit your enquiry.');
+      setError('Under the Digital Personal Data Protection Act (DPDP Act, 2023), your explicit affirmative consent is required. Please check the consent box below to proceed.');
       return;
     }
 
@@ -213,18 +213,29 @@ export default function EnquiryForm({ defaultService = '' }: { defaultService?: 
         ></textarea>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="privacyConsent"
-          name="privacyConsent"
-          checked={formData.privacyConsent}
-          onChange={handleChange}
-          className="rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12]"
-        />
-        <label htmlFor="privacyConsent" className="text-xs text-[#9AA3B8]">
-          I agree to the <a href="/privacy-policy" className="text-[#00E676] underline">Privacy Policy</a> and allow HackifyPro to contact me regarding my enquiry.
-        </label>
+      {/* DPDP Act 2023 Explicit Consent Box */}
+      <div className="p-4 rounded-xl bg-[#0F1624] border border-[#1E293B] space-y-3">
+        <div className="flex items-center space-x-2 text-xs font-mono text-[#00E676]">
+          <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+          <span className="font-semibold uppercase tracking-wider">DPDP Act, 2023 Notice &amp; Consent</span>
+        </div>
+        <p className="text-[11px] text-[#9AA3B8] leading-relaxed">
+          We collect your name, contact information, and project specifications solely to respond to your technical enquiry, prepare service proposals, and schedule consultations. In compliance with the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act)</strong>, your data is processed only with your explicit consent and will never be shared with third parties for marketing. You have the right to access, rectify, erase, or withdraw your consent at any time by emailing <a href="mailto:hackifypro@gmail.com" className="text-[#00E676] hover:underline">hackifypro@gmail.com</a>.
+        </p>
+        <div className="pt-2 border-t border-[#1E293B]/70 flex items-start space-x-3">
+          <input
+            type="checkbox"
+            id="privacyConsent"
+            name="privacyConsent"
+            required
+            checked={formData.privacyConsent}
+            onChange={handleChange}
+            className="mt-0.5 h-4 w-4 rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12] cursor-pointer"
+          />
+          <label htmlFor="privacyConsent" className="text-xs text-[#E8EDF5] leading-snug cursor-pointer select-none">
+            I explicitly consent under the DPDP Act, 2023 to HackifyPro collecting and processing my submitted details for this project enquiry in accordance with the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#00E676] underline hover:text-[#00c853]">Privacy Policy</a>. <span className="text-[#00E676]">*</span>
+          </label>
+        </div>
       </div>
 
       <button

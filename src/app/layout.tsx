@@ -4,6 +4,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import GoogleTag from '@/components/shared/GoogleTag';
 import WhatsAppFloating from '@/components/shared/WhatsAppFloating';
+import DPDPConsentBanner from '@/components/shared/DPDPConsentBanner';
 import { company } from '@/data/company';
 
 export const metadata: Metadata = {
@@ -137,6 +138,7 @@ export default function RootLayout({
         <main className="flex-grow">{children}</main>
         <Footer />
         <WhatsAppFloating />
+        <DPDPConsentBanner />
       </body>
     </html>
   );

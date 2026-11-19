@@ -22,6 +22,9 @@ export interface Appointment {
   notes?: string;
   createdAt: string;
   ipAddress?: string;
+  dpdpConsent?: boolean;
+  consentTimestamp?: string;
+  consentPurpose?: string;
 }
 
 export interface Enquiry {
@@ -38,6 +41,9 @@ export interface Enquiry {
   notes?: string;
   createdAt: string;
   ipAddress?: string;
+  dpdpConsent?: boolean;
+  consentTimestamp?: string;
+  consentPurpose?: string;
 }
 
 export interface QuoteRequest {
@@ -55,6 +61,9 @@ export interface QuoteRequest {
   notes?: string;
   createdAt: string;
   ipAddress?: string;
+  dpdpConsent?: boolean;
+  consentTimestamp?: string;
+  consentPurpose?: string;
 }
 
 export interface AdminUser {
