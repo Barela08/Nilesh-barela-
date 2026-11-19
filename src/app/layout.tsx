@@ -53,9 +53,12 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'googledbca3e63ac5f841c',
+    google: '1N0vSqkiyjlA4M87-QM_g8S56wPyp8Gh3UY_Mi0QDH4',
     other: {
-      'google-site-verification': 'googledbca3e63ac5f841c',
+      'google-site-verification': [
+        '1N0vSqkiyjlA4M87-QM_g8S56wPyp8Gh3UY_Mi0QDH4',
+        'googledbca3e63ac5f841c',
+      ],
       'msvalidate.01': 'googledbca3e63ac5f841c',
     },
   },
@@ -194,6 +197,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <meta name="google-site-verification" content="1N0vSqkiyjlA4M87-QM_g8S56wPyp8Gh3UY_Mi0QDH4" />
         <meta name="google-site-verification" content="googledbca3e63ac5f841c" />
         <meta name="msvalidate.01" content="googledbca3e63ac5f841c" />
         <meta name="geo.region" content="IN-MH" />

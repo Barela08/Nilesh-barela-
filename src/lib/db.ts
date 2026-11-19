@@ -4,12 +4,21 @@ import { getDb } from './firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { portfolioProjects, PortfolioProject } from '@/data/portfolio';
 
+function stripUndefined(obj: any): any {
+  if (typeof obj !== 'object' || obj === null) return obj;
+  return Object.fromEntries(
+    Object.entries(obj)
+      .filter(([_, v]) => v !== undefined)
+      .map(([k, v]) => [k, typeof v === 'object' && !Array.isArray(v) && v !== null ? stripUndefined(v) : v])
+  );
+}
+
 async function mirrorToFirestore(collName: string, id: string, data: any) {
   try {
     const db = getDb();
     if (!db) return;
     const docRef = doc(db, collName, id);
-    await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+    await setDoc(docRef, { ...stripUndefined(data), updatedAt: new Date().toISOString() });
     console.log(`[Firestore Sync] Mirrored ${collName}/${id}`);
   } catch (err: any) {
     console.debug(`[Firestore Sync Notice] Lead ${id} safely stored locally. Cloud sync:`, err?.message || err);

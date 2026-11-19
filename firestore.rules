@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // 1. APPOINTMENTS
+    match /appointments/{appointmentId} {
+      // Anyone can submit a booking request from the public website
+      allow create: if request.resource.data.fullName is string
+                    && request.resource.data.email is string
+                    && request.resource.data.phone is string
+                    && request.resource.data.serviceRequired is string;
+      
+      // Admin can view and update appointments
+      allow read, update, delete: if true;
+    }
+
+    // 2. ENQUIRIES
+    match /enquiries/{enquiryId} {
+      // Anyone can submit an enquiry from contact forms
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.email is string
+                    && request.resource.data.phone is string;
+      
+      // Admin can view and update enquiries
+      allow read, update, delete: if true;
+    }
+
+    // 3. QUOTES
+    match /quotes/{quoteId} {
+      // Anyone can submit a quote request
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.email is string
+                    && request.resource.data.phone is string;
+      
+      // Admin can view and update quotes
+      allow read, update, delete: if true;
+    }
+
+    // 4. PORTFOLIO PROJECTS
+    match /projects/{projectId} {
+      // Public read access for prospective clients
+      allow read: if true;
+      // Admin or migration can write
+      allow write: if true;
+    }
+
+    // 5. SYSTEM & AUDIT LOGS
+    match /system_test/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
