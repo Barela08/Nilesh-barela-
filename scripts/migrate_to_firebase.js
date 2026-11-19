@@ -1,19 +1,19 @@
-const { initializeApp, getApps, getApp } = require('firebase/app');
+const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, setDoc } = require('firebase/firestore');
 const fs = require('fs');
 const path = require('path');
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAU37WSKIwU71q1kVNGvzfJ-YqkNznhlPo",
-  authDomain: "nilesh-barela.firebaseapp.com",
-  projectId: "nilesh-barela",
-  storageBucket: "nilesh-barela.firebasestorage.app",
-  messagingSenderId: "181013463096",
-  appId: "1:181013463096:web:f68519ad896546d438a6cd",
-  measurementId: "G-3EWJFLZ3QZ"
+  projectId: "self-driving-car-rental-9f35f",
+  appId: "1:611647646497:web:857638b3e91219df7b2c60",
+  storageBucket: "self-driving-car-rental-9f35f.firebasestorage.app",
+  apiKey: "AIzaSyDgGzbnzU_sMrZS9tF774ZD0_6jDvBKsEM",
+  authDomain: "self-driving-car-rental-9f35f.firebaseapp.com",
+  messagingSenderId: "611647646497",
+  measurementId: "G-3JEWNBVFHR"
 };
 
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function uploadCollection(collectionName, fileName) {
@@ -60,7 +60,7 @@ async function main() {
   await uploadCollection('projects', 'projects.json');
 
   console.log('\n==============================================');
-  console.log('All local data successfully migrated to Firebase!');
+  console.log('ALL DATA SUCCESSFULLY UPLOADED TO FIREBASE!');
   console.log('==============================================');
   process.exit(0);
 }

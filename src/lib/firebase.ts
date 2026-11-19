@@ -1,15 +1,14 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 
-export const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAU37WSKIwU71q1kVNGvzfJ-YqkNznhlPo",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "nilesh-barela.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "nilesh-barela",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "nilesh-barela.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "181013463096",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:181013463096:web:f68519ad896546d438a6cd",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-3EWJFLZ3QZ",
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDgGzbnzU_sMrZS9tF774ZD0_6jDvBKsEM",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "self-driving-car-rental-9f35f.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "self-driving-car-rental-9f35f",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "self-driving-car-rental-9f35f.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "611647646497",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:611647646497:web:857638b3e91219df7b2c60",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-3JEWNBVFHR",
 };
 
 export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -22,18 +21,4 @@ export function getDb(): Firestore | null {
     console.warn('[Firebase] Firestore init failed:', err);
     return null;
   }
-}
-
-let analyticsInstance: Analytics | null = null;
-
-export async function initAnalytics(): Promise<Analytics | null> {
-  if (typeof window !== 'undefined') {
-    if (analyticsInstance) return analyticsInstance;
-    const supported = await isSupported().catch(() => false);
-    if (supported) {
-      analyticsInstance = getAnalytics(app);
-      return analyticsInstance;
-    }
-  }
-  return null;
 }
