@@ -7,8 +7,6 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/admin',
-          '/api/admin',
           '/appointment-confirmation',
           '/enquiry-confirmation',
           '/request-received',

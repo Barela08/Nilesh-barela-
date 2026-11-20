@@ -24,8 +24,9 @@ lerna-debug.log*
 firebase-debug.log*
 
 # Local environment files
-.env*.local
 .env
+.env.*
+!.env.example
 
 # Vercel
 .vercel

@@ -86,8 +86,8 @@ async function runTests() {
       { recoveryKey: ADMIN_SECRET_KEY }
     );
 
-    // 1. Homepage & Admin route availability
-    console.log('--- TEST GROUP 1: SERVER & ROUTE HEALTH ---');
+    // 1. Server, Route Cloaking & Stealth Protection
+    console.log('--- TEST GROUP 1: SERVER, CLOAKING & SENSITIVE FILE DEFENSE ---');
     const homeRes = await request({
       hostname: 'localhost',
       port: 3000,
@@ -96,13 +96,32 @@ async function runTests() {
     });
     assert(homeRes.statusCode === 200, 'Homepage returns 200 OK');
 
-    const adminRes = await request({
+    // Verify /admin is cloaked with 404 for unauthorized visitors
+    const directAdminRes = await request({
       hostname: 'localhost',
       port: 3000,
       path: '/admin',
       method: 'GET'
     });
-    assert(adminRes.statusCode === 200, 'Admin panel page returns 200 OK');
+    assert(directAdminRes.statusCode === 404, 'Direct unauthenticated /admin cloaked with 404 Not Found');
+
+    // Verify .env is strictly blocked
+    const envProbeRes = await request({
+      hostname: 'localhost',
+      port: 3000,
+      path: '/.env',
+      method: 'GET'
+    });
+    assert(envProbeRes.statusCode === 404, 'Direct /.env probe blocked with 404 Not Found');
+
+    // Verify Secret Slug unlocks Admin Panel
+    const secretSlugRes = await request({
+      hostname: 'localhost',
+      port: 3000,
+      path: '/hp-portal-2026',
+      method: 'GET'
+    });
+    assert(secretSlugRes.statusCode === 200, 'Secret Admin Portal (/hp-portal-2026) accessible with 200 OK');
 
     // 2. Visitor Intelligence & Anonymous Tracking
     console.log('\n--- TEST GROUP 2: VISITOR INTELLIGENCE & TRACKING ---');
