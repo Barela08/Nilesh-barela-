@@ -184,6 +184,11 @@ export default function AdminDashboardPage() {
   const [projectActionMsg, setProjectActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [previewProject, setPreviewProject] = useState<PortfolioProject | null>(null);
   const [deleteConfirmProject, setDeleteConfirmProject] = useState<PortfolioProject | null>(null);
+  const [projectMediaUploading, setProjectMediaUploading] = useState(false);
+  const [projectUploadError, setProjectUploadError] = useState<string | null>(null);
+  const projectMediaInputRef = useRef<HTMLInputElement>(null);
+  const projectGalleryInputRef = useRef<HTMLInputElement>(null);
+  const projectVideoInputRef = useRef<HTMLInputElement>(null);
 
   // Media Manager & Upload Queue State
   const [mediaList, setMediaList] = useState<any[]>([]);
@@ -498,6 +503,84 @@ export default function AdminDashboardPage() {
     });
     setProjectActionMsg(null);
     setProjectModalOpen(true);
+  };
+
+  const handleProjectFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'cover' | 'gallery' | 'video' = 'cover') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setProjectMediaUploading(true);
+    setProjectUploadError(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', file.name.replace(/\.[^/.]+$/, ''));
+    formData.append('altText', `${projectForm.title || 'Project'} ${target}`);
+
+    try {
+      const res = await fetch('/api/admin/media/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to upload media file');
+      }
+
+      const uploadedUrl = data.media?.url;
+      if (target === 'cover' && uploadedUrl) {
+        setProjectForm((prev) => ({
+          ...prev,
+          image: uploadedUrl,
+        }));
+      } else if (target === 'gallery' && uploadedUrl) {
+        setProjectForm((prev) => ({
+          ...prev,
+          galleryItems: [
+            ...(prev.galleryItems || []),
+            {
+              id: `img-${Date.now()}`,
+              url: uploadedUrl,
+              alt: `${prev.title} screenshot`,
+              caption: file.name,
+              order: (prev.galleryItems?.length || 0) + 1,
+            },
+          ],
+        }));
+      } else if (target === 'video' && uploadedUrl) {
+        setProjectForm((prev) => ({
+          ...prev,
+          videoItems: [
+            ...(prev.videoItems || []),
+            {
+              id: `vid-${Date.now()}`,
+              title: file.name,
+              url: uploadedUrl,
+              type: 'file',
+              order: (prev.videoItems?.length || 0) + 1,
+              position: 'after',
+            },
+          ],
+        }));
+      }
+
+      setProjectActionMsg({
+        type: 'success',
+        text: `Uploaded "${file.name}" successfully!`,
+      });
+      setTimeout(() => setProjectActionMsg(null), 3000);
+    } catch (err: any) {
+      setProjectUploadError(err.message || 'Media upload failed');
+    } finally {
+      setProjectMediaUploading(false);
+      if (projectMediaInputRef.current) projectMediaInputRef.current.value = '';
+      if (projectGalleryInputRef.current) projectGalleryInputRef.current.value = '';
+      if (projectVideoInputRef.current) projectVideoInputRef.current.value = '';
+    }
   };
 
   const handleSaveProject = async (e: React.FormEvent) => {
@@ -2790,15 +2873,40 @@ export default function AdminDashboardPage() {
             )}
 
             <form onSubmit={handleSaveProject} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
+              {/* Hidden file inputs for direct uploads */}
+              <input
+                type="file"
+                ref={projectMediaInputRef}
+                onChange={(e) => handleProjectFileUpload(e, 'cover')}
+                accept="image/*,video/*"
+                className="hidden"
+              />
+              <input
+                type="file"
+                ref={projectGalleryInputRef}
+                onChange={(e) => handleProjectFileUpload(e, 'gallery')}
+                accept="image/*"
+                className="hidden"
+              />
+              <input
+                type="file"
+                ref={projectVideoInputRef}
+                onChange={(e) => handleProjectFileUpload(e, 'video')}
+                accept="video/*"
+                className="hidden"
+              />
+
+              {/* Basic Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-2">
                   <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Project Title *</label>
                   <input
                     type="text"
                     required
                     value={projectForm.title}
                     onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                    placeholder="e.g. Self-Driving Car Rental ERP"
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white focus:border-[#00E676]"
                   />
                 </div>
                 <div>
@@ -2808,7 +2916,8 @@ export default function AdminDashboardPage() {
                     required
                     value={projectForm.category}
                     onChange={(e) => setProjectForm({ ...projectForm, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                    placeholder="e.g. Automotive & Fleet ERP"
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white focus:border-[#00E676]"
                   />
                 </div>
                 <div>
@@ -2817,50 +2926,440 @@ export default function AdminDashboardPage() {
                     type="text"
                     value={projectForm.projectType}
                     onChange={(e) => setProjectForm({ ...projectForm, projectType: e.target.value })}
+                    placeholder="e.g. Enterprise ERP / SaaS"
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white focus:border-[#00E676]"
+                  />
+                </div>
+              </div>
+
+              {/* COVER MEDIA (IMAGE / VIDEO) UPLOAD & PREVIEW */}
+              <div className="p-4 rounded-2xl bg-[#080B12] border border-[#1E293B] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="text-xs font-mono text-white font-bold flex items-center space-x-1.5">
+                      <Upload className="w-3.5 h-3.5 text-[#00E676]" />
+                      <span>Project Cover Media (Image or Video) *</span>
+                    </label>
+                    <p className="text-[11px] font-mono text-[#64748B]">
+                      Upload an image (PNG, JPG, WebP) or demo video (MP4, WebM) directly from your device.
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      disabled={projectMediaUploading}
+                      onClick={() => projectMediaInputRef.current?.click()}
+                      className="px-3.5 py-1.5 rounded-lg bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 flex items-center space-x-1.5 transition-opacity disabled:opacity-50 shadow-md shadow-[#00E676]/20"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{projectMediaUploading ? 'Uploading Media...' : 'Upload Image / Video'}</span>
+                    </button>
+                    {projectForm.image && (
+                      <button
+                        type="button"
+                        onClick={() => setProjectForm({ ...projectForm, image: '' })}
+                        className="px-2.5 py-1.5 rounded-lg bg-[#141D30] text-[#9AA3B8] hover:text-red-400 text-xs font-mono transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Direct URL Input */}
+                <div>
+                  <input
+                    type="text"
+                    required
+                    value={projectForm.image}
+                    onChange={(e) => setProjectForm({ ...projectForm, image: e.target.value })}
+                    placeholder="/assets/hackifypro-workspace.png or /uploads/my-video.mp4"
+                    className="w-full px-3 py-2 rounded-xl bg-[#0F1624] border border-[#1E293B] text-xs text-white font-mono focus:border-[#00E676]"
+                  />
+                </div>
+
+                {projectUploadError && (
+                  <div className="p-2.5 rounded-lg bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-center space-x-2">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{projectUploadError}</span>
+                  </div>
+                )}
+
+                {/* Live Media Preview Box */}
+                {projectForm.image && (
+                  <div className="p-3 rounded-xl bg-[#0F1624] border border-[#1E293B] space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-[#9AA3B8] flex items-center space-x-1">
+                        {/\.(mp4|webm|mov|mkv|ogg)(\?.*)?$/i.test(projectForm.image) ? (
+                          <>
+                            <Film className="w-3.5 h-3.5 text-[#38BDF8]" />
+                            <span className="text-[#38BDF8] font-bold">Video Asset Detected</span>
+                          </>
+                        ) : (
+                          <>
+                            <ImageIcon className="w-3.5 h-3.5 text-[#00E676]" />
+                            <span className="text-[#00E676] font-bold">Image Asset Detected</span>
+                          </>
+                        )}
+                      </span>
+                      <span className="text-[#64748B] truncate max-w-xs">{projectForm.image}</span>
+                    </div>
+
+                    <div className="relative h-48 w-full rounded-lg overflow-hidden bg-black flex items-center justify-center">
+                      {/\.(mp4|webm|mov|mkv|ogg)(\?.*)?$/i.test(projectForm.image) ? (
+                        <video
+                          src={projectForm.image}
+                          controls
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <img
+                          src={projectForm.image}
+                          alt="Cover Preview"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            (e.target as any).src = '/assets/hackifypro-workspace.png';
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* DEMO LINK SECTION */}
+              <div className="p-4 rounded-2xl bg-[#080B12] border border-[#00E676]/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-mono text-[#00E676] font-bold uppercase flex items-center space-x-1.5">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Live Demo Link / URL</span>
+                  </label>
+                  {projectForm.demoUrl && (
+                    <a
+                      href={projectForm.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-mono text-[#00E676] hover:underline flex items-center space-x-1"
+                    >
+                      <span>Test Demo Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={projectForm.demoUrl}
+                  onChange={(e) => setProjectForm({ ...projectForm, demoUrl: e.target.value })}
+                  placeholder="e.g. https://demo.hackifypro.com or /car-rental-software"
+                  className="w-full px-3 py-2 rounded-xl bg-[#0F1624] border border-[#1E293B] text-xs text-white font-mono focus:border-[#00E676]"
+                />
+                <p className="text-[11px] font-mono text-[#64748B]">
+                  Clients on your website can click directly to test this demo. External links (https://...) open in a new tab.
+                </p>
+              </div>
+
+              {/* Deployment Status & Market */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Deployment Status</label>
+                  <input
+                    type="text"
+                    value={projectForm.status}
+                    onChange={(e) => setProjectForm({ ...projectForm, status: e.target.value })}
+                    placeholder="e.g. Live & Demonstration Ready"
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Client / Target Audience</label>
+                  <input
+                    type="text"
+                    value={projectForm.client}
+                    onChange={(e) => setProjectForm({ ...projectForm, client: e.target.value })}
+                    placeholder="e.g. Self-Drive Fleet Operators"
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Market / Location</label>
+                  <input
+                    type="text"
+                    value={projectForm.market}
+                    onChange={(e) => setProjectForm({ ...projectForm, market: e.target.value })}
+                    placeholder="e.g. Maharashtra & Pan-India"
                     className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Cover Image URL *</label>
-                <input
-                  type="text"
-                  required
-                  value={projectForm.image}
-                  onChange={(e) => setProjectForm({ ...projectForm, image: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                />
+              {/* Summary & Problem Solved */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Project Summary *</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={projectForm.summary}
+                    onChange={(e) => setProjectForm({ ...projectForm, summary: e.target.value })}
+                    placeholder="Brief 2-3 line overview of this application..."
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white focus:border-[#00E676]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Problem Solved</label>
+                  <textarea
+                    rows={3}
+                    value={projectForm.problemSolved}
+                    onChange={(e) => setProjectForm({ ...projectForm, problemSolved: e.target.value })}
+                    placeholder="What operational or business bottlenecks were resolved?"
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white focus:border-[#00E676]"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Summary *</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={projectForm.summary}
-                  onChange={(e) => setProjectForm({ ...projectForm, summary: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                />
+              {/* Key Features & Tech Stack */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">
+                    Key Features (One feature per line)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={projectForm.mainFeaturesText}
+                    onChange={(e) => setProjectForm({ ...projectForm, mainFeaturesText: e.target.value })}
+                    placeholder="Instant Driving License KYC&#10;Visual fleet calendar&#10;Digital rental contracts"
+                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white font-mono"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">
+                      Tech Stack (Comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={projectForm.techStackText}
+                      onChange={(e) => setProjectForm({ ...projectForm, techStackText: e.target.value })}
+                      placeholder="Next.js 15, React 19, TypeScript, Firebase, Tailwind CSS"
+                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white font-mono"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Visibility</label>
+                      <select
+                        value={projectForm.visibility}
+                        onChange={(e) => setProjectForm({ ...projectForm, visibility: e.target.value as any })}
+                        className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white font-mono"
+                      >
+                        <option value="published">Published (Live)</option>
+                        <option value="draft">Draft (Hidden)</option>
+                        <option value="archived">Archived</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center space-x-2 pt-6">
+                      <input
+                        type="checkbox"
+                        id="featuredToggle"
+                        checked={projectForm.featured}
+                        onChange={(e) => setProjectForm({ ...projectForm, featured: e.target.checked })}
+                        className="rounded border-[#1E293B] text-[#00E676] focus:ring-[#00E676] bg-[#080B12]"
+                      />
+                      <label htmlFor="featuredToggle" className="text-xs font-mono text-white cursor-pointer">
+                        Featured on Home Page
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
 
+              {/* Extra Gallery Screenshots & Demo Video Upload */}
+              <div className="p-4 rounded-2xl bg-[#080B12] border border-[#1E293B] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-mono text-white font-bold block">
+                      Extra Gallery Screenshots &amp; Videos (Optional)
+                    </span>
+                    <span className="text-[11px] font-mono text-[#64748B]">
+                      Upload additional screenshots or demo video files for this project.
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      disabled={projectMediaUploading}
+                      onClick={() => projectGalleryInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-lg bg-[#141D30] hover:bg-[#1E293B] text-[#38BDF8] border border-[#1E293B] text-xs font-mono flex items-center space-x-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>+ Add Screenshot</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={projectMediaUploading}
+                      onClick={() => projectVideoInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-lg bg-[#141D30] hover:bg-[#1E293B] text-[#A78BFA] border border-[#1E293B] text-xs font-mono flex items-center space-x-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>+ Add Video</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Gallery List Preview */}
+                {(projectForm.galleryItems?.length > 0 || projectForm.videoItems?.length > 0) && (
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-[#1E293B]">
+                    {projectForm.galleryItems?.map((g, gIdx) => (
+                      <div key={g.id || gIdx} className="relative group w-20 h-16 rounded-lg overflow-hidden border border-[#1E293B] bg-black">
+                        <img src={g.url} alt="Gallery" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setProjectForm(prev => ({
+                            ...prev,
+                            galleryItems: prev.galleryItems.filter((_, i) => i !== gIdx)
+                          }))}
+                          className="absolute top-1 right-1 p-0.5 rounded bg-red-600 text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {projectForm.videoItems?.map((v, vIdx) => (
+                      <div key={v.id || vIdx} className="relative group w-24 h-16 rounded-lg overflow-hidden border border-[#A78BFA]/40 bg-black flex items-center justify-center">
+                        <Film className="w-6 h-6 text-[#A78BFA]" />
+                        <button
+                          type="button"
+                          onClick={() => setProjectForm(prev => ({
+                            ...prev,
+                            videoItems: prev.videoItems.filter((_, i) => i !== vIdx)
+                          }))}
+                          className="absolute top-1 right-1 p-0.5 rounded bg-red-600 text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Form Submission Action Buttons */}
               <div className="flex items-center justify-end space-x-3 pt-4 border-t border-[#1E293B]">
                 <button
                   type="button"
                   onClick={() => setProjectModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-[#080B12] text-[#9AA3B8] font-mono text-xs hover:text-white"
+                  className="px-5 py-2.5 rounded-xl bg-[#080B12] text-[#9AA3B8] font-mono text-xs hover:text-white border border-[#1E293B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={projectSubmitting}
-                  className="px-6 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider"
+                  disabled={projectSubmitting || projectMediaUploading}
+                  className="px-7 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-[#00E676]/20"
                 >
-                  {projectSubmitting ? 'Saving...' : 'Save Project'}
+                  {projectSubmitting ? 'Saving Project...' : isEditingProject ? 'Save Project Changes' : 'Create Project'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 3B: PREVIEW PROJECT CARD */}
+      {/* ========================================================= */}
+      {previewProject && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#0F1624] border border-[#1E293B] rounded-3xl w-full max-w-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6">
+            <div className="flex items-center justify-between border-b border-[#1E293B] pb-4">
+              <div>
+                <span className="text-xs font-mono text-[#00E676] uppercase tracking-wider">{previewProject.category}</span>
+                <h3 className="text-xl font-heading font-extrabold text-white mt-1">
+                  {previewProject.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setPreviewProject(null)}
+                className="p-2 rounded-xl bg-[#080B12] text-[#9AA3B8] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Media */}
+            <div className="relative h-64 w-full rounded-2xl overflow-hidden bg-black border border-[#1E293B] flex items-center justify-center">
+              {previewProject.image && /\.(mp4|webm|mov|mkv|ogg)(\?.*)?$/i.test(previewProject.image) ? (
+                <video src={previewProject.image} controls className="w-full h-full object-contain" />
+              ) : (
+                <img
+                  src={previewProject.image || '/assets/hackifypro-workspace.png'}
+                  alt={previewProject.title}
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+
+            {/* Description & Problem Solved */}
+            <div className="space-y-3 text-xs leading-relaxed">
+              <p className="text-[#E8EDF5]">{previewProject.summary}</p>
+              {previewProject.problemSolved && (
+                <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1E293B]">
+                  <strong className="text-[#38BDF8] block font-mono text-[11px] mb-1">Problem Solved:</strong>
+                  <span className="text-[#9AA3B8]">{previewProject.problemSolved}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Features */}
+            {previewProject.mainFeatures && previewProject.mainFeatures.length > 0 && (
+              <div className="space-y-1.5 text-xs">
+                <span className="text-[11px] font-mono text-[#9AA3B8] uppercase block">Key Features</span>
+                {previewProject.mainFeatures.map((f, i) => (
+                  <div key={i} className="flex items-center space-x-2 text-[#E8EDF5]">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676] flex-shrink-0" />
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tech Stack */}
+            {previewProject.techStack && previewProject.techStack.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-2">
+                {previewProject.techStack.map((tech) => (
+                  <span key={tech} className="text-[10px] font-mono px-2.5 py-1 rounded bg-[#141D30] text-[#38BDF8] border border-[#1E293B]">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Footer with Demo Link */}
+            <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]">
+              <span className="text-xs font-mono text-[#00E676]">{previewProject.status}</span>
+              <div className="flex items-center space-x-3">
+                {previewProject.demoUrl && (
+                  <a
+                    href={previewProject.demoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5"
+                  >
+                    <span>Open Live Demo</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                <button
+                  onClick={() => setPreviewProject(null)}
+                  className="px-4 py-2 rounded-xl bg-[#080B12] text-xs font-mono text-[#9AA3B8] hover:text-white border border-[#1E293B]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -91,15 +91,27 @@ export default function PortfolioPage() {
                       );
                     })}
 
-                    {/* Main Cover Image */}
+                    {/* Main Cover Image / Video */}
                     <div className="relative h-64 sm:h-80 w-full rounded-2xl overflow-hidden bg-[#080B12] border border-[#1E293B] group">
-                      <Image
-                        src={p.image}
-                        alt={p.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        priority
-                      />
+                      {p.image && /\.(mp4|webm|mov|mkv|ogg)(\?.*)?$/i.test(p.image) ? (
+                        <video
+                          src={p.image}
+                          controls
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src={p.image}
+                          alt={p.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          priority
+                        />
+                      )}
                       {p.projectType && (
                         <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#080B12]/80 backdrop-blur-md text-[10px] font-mono text-[#00E676] border border-[#1E293B]">
                           {p.projectType}

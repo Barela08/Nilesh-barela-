@@ -152,5 +152,53 @@
     ],
     "githubUrl": "https://github.com/Barela08/Nilesh-barela-",
     "createdAt": "2026-11-01T08:00:00.000Z"
+  },
+  {
+    "id": "proj-4",
+    "slug": "self-driving-car-rental-erp",
+    "title": "HackifyPro Self-Driving Car ERP & Fleet Management System",
+    "category": "Automotive & Fleet ERP",
+    "summary": "Full-stack automotive enterprise resource planning system engineered for self-drive operators and car rental agencies. Integrates automated vehicle scheduling, digital KYC identity verification, dynamic rental agreements, and security deposit management.",
+    "client": "Self-Drive Fleet Operators & Car Rental Agencies",
+    "market": "Maharashtra & Pan-India",
+    "problemSolved": "Self-drive car rental businesses struggled with double-booking conflicts, fraudulent document submissions, paper agreements, untracked fuel/meter readings at handover, and chaotic deposit refund disputes.",
+    "mainFeatures": [
+      "Instant Driving License & Aadhaar KYC identity verification engine.",
+      "Visual Fleet Availability Matrix preventing overlap and tracking return schedules.",
+      "Automated digital rental contract generation with fuel & odometer handover logs.",
+      "Dedicated security deposit lifecycle tracking with damage/toll deduction logs.",
+      "Scheduled fleet maintenance alerts and vehicle-wise profitability analytics.",
+      "SMS & WhatsApp booking confirmation and trip completion alerts."
+    ],
+    "techStack": [
+      "Next.js 15",
+      "React 19",
+      "TypeScript",
+      "Firebase Firestore",
+      "Node.js API",
+      "Tailwind CSS"
+    ],
+    "image": "/assets/hackifypro-workspace.png",
+    "demoUrl": "/car-rental-software",
+    "hasDemo": true,
+    "status": "Live & Demonstration Ready",
+    "projectType": "Automotive Enterprise ERP",
+    "targetAudience": "Self-Drive Operators, Fleet Owners & Car Rental Businesses",
+    "visibility": "published",
+    "featured": true,
+    "displayOrder": 4,
+    "viewsCount": 210,
+    "gallery": [
+      {
+        "id": "img-car-1",
+        "url": "/assets/hackifypro-workspace.png",
+        "alt": "Self Driving Car ERP Dashboard",
+        "caption": "Fleet Availability & Real-Time Booking Console",
+        "order": 1
+      }
+    ],
+    "videos": [],
+    "githubUrl": "https://github.com/Barela08",
+    "createdAt": "2026-11-20T10:00:00.000Z"
   }
 ]

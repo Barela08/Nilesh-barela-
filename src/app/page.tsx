@@ -463,12 +463,23 @@ export default function HomePage() {
               >
                 <div>
                   <div className="relative h-48 w-full bg-[#080B12] overflow-hidden">
-                    <Image
-                      src={p.image}
-                      alt={p.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    {p.image && /\.(mp4|webm|mov|mkv|ogg)(\?.*)?$/i.test(p.image) ? (
+                      <video
+                        src={p.image}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <Image
+                        src={p.image}
+                        alt={p.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    )}
                     <div className="absolute top-3 left-3 bg-[#080B12]/80 backdrop-blur-md px-2.5 py-1 rounded text-[11px] font-mono text-[#00E676]">
                       {p.category}
                     </div>
