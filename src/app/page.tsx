@@ -79,7 +79,7 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const portfolioProjects = dbProjects.getAll();
+  const portfolioProjects = dbProjects.getPublished().filter((p) => p.featured !== false);
   const processSteps = [
     { num: '01', title: 'Requirement Analysis', desc: 'Understanding your business workflow, operational goals, target users, and key features.' },
     { num: '02', title: 'Planning & Architecture', desc: 'Defining database models, API specs, security requirements, and development milestones.' },

@@ -1,0 +1,248 @@
+{
+  "links": [
+    {
+      "id": "lnk-wa",
+      "key": "whatsapp",
+      "label": "WhatsApp Chat",
+      "url": "https://wa.me/917414935405",
+      "category": "contact",
+      "enabled": true,
+      "openInNewTab": true,
+      "order": 1
+    },
+    {
+      "id": "lnk-li",
+      "key": "linkedin",
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/nilesh-barels08/",
+      "category": "social",
+      "enabled": true,
+      "openInNewTab": true,
+      "order": 2
+    },
+    {
+      "id": "lnk-ig",
+      "key": "instagram",
+      "label": "Instagram (Personal)",
+      "url": "https://www.instagram.com/_https_nilesh08/",
+      "category": "social",
+      "enabled": true,
+      "openInNewTab": true,
+      "order": 3
+    },
+    {
+      "id": "lnk-ig-co",
+      "key": "companyInstagram",
+      "label": "Instagram (Company)",
+      "url": "https://www.instagram.com/hackifypro_web/",
+      "category": "social",
+      "enabled": true,
+      "openInNewTab": true,
+      "order": 4
+    },
+    {
+      "id": "lnk-x",
+      "key": "x",
+      "label": "X (Twitter)",
+      "url": "https://x.com/NileshBarela6",
+      "category": "social",
+      "enabled": true,
+      "openInNewTab": true,
+      "order": 5
+    },
+    {
+      "id": "lnk-gh",
+      "key": "github",
+      "label": "GitHub Repository",
+      "url": "https://github.com/Barela08",
+      "category": "social",
+      "enabled": true,
+      "openInNewTab": true,
+      "order": 6
+    },
+    {
+      "id": "lnk-em1",
+      "key": "emailPrimary",
+      "label": "Primary Email",
+      "url": "mailto:hackifypro@gmail.com",
+      "category": "contact",
+      "enabled": true,
+      "openInNewTab": false,
+      "order": 7
+    },
+    {
+      "id": "lnk-em2",
+      "key": "emailSecondary",
+      "label": "Founder Direct Email",
+      "url": "mailto:barelanilesh483@gmail.com",
+      "category": "contact",
+      "enabled": true,
+      "openInNewTab": false,
+      "order": 8
+    },
+    {
+      "id": "lnk-apt",
+      "key": "bookAppointment",
+      "label": "Book Consultation",
+      "url": "/appointment",
+      "category": "cta",
+      "enabled": true,
+      "openInNewTab": false,
+      "order": 9
+    },
+    {
+      "id": "lnk-quo",
+      "key": "requestQuote",
+      "label": "Get Free Estimate",
+      "url": "/request-quote",
+      "category": "cta",
+      "enabled": true,
+      "openInNewTab": false,
+      "order": 10
+    },
+    {
+      "id": "lnk-res",
+      "key": "resume",
+      "label": "Download Resume",
+      "url": "/assets/nilesh-barela-resume.pdf",
+      "category": "cta",
+      "enabled": false,
+      "openInNewTab": true,
+      "order": 11
+    }
+  ],
+  "founder": {
+    "name": "Nilesh Barela",
+    "role": "Founder of HackifyPro | App Developer | AI Enthusiast | Cybersecurity Learner",
+    "tagline": "Building digital products, exploring AI frontiers, and sharing practical technology knowledge.",
+    "location": "Maharashtra, India",
+    "image": "/assets/nilesh-barela.jpg",
+    "bio": "Nilesh Barela is an Indian app developer, AI enthusiast and cybersecurity learner passionate about technology, programming, artificial intelligence, web development and cybersecurity. He is the founder of HackifyPro, a technology company focused on developing digital solutions and helping people explore technology through practical projects and educational resources.",
+    "email": "hackifypro@gmail.com",
+    "secondaryEmail": "barelanilesh483@gmail.com",
+    "phone": "+91 7414935405",
+    "resumeUrl": "/assets/nilesh-barela-resume.pdf",
+    "availability": "Open for Select Custom Projects & Strategic Consulting",
+    "visibility": true,
+    "skills": [
+      "React",
+      "Next.js",
+      "Android (Kotlin/Java)",
+      "Python",
+      "TypeScript",
+      "Node.js",
+      "Cybersecurity",
+      "Cloud Infrastructure"
+    ],
+    "education": "Bachelor of Computer Applications (BCA)",
+    "experience": "Founder & Full-Stack Engineer at HackifyPro"
+  },
+  "services": [
+    {
+      "id": "srv-website-development",
+      "slug": "website-development",
+      "title": "Website Development",
+      "h1": "High-Performance Website Development for Modern Businesses",
+      "shortDesc": "Fast, responsive, and SEO-engineered corporate websites, business portals, and conversion-optimized landing pages.",
+      "iconName": "Globe",
+      "displayOrder": 1,
+      "visibility": true,
+      "metaTitle": "Website Development Company in Nashik | HackifyPro",
+      "metaDesc": "Professional website development services in Nashik and Maharashtra by HackifyPro. Fast, secure, mobile-first, and search-optimized business websites."
+    },
+    {
+      "id": "srv-android-app-development",
+      "slug": "android-app-development",
+      "title": "Android App Development",
+      "h1": "Native & Hybrid Android App Development for Scalable Businesses",
+      "shortDesc": "Robust, intuitive, and secure Android applications designed for modern consumer experiences and enterprise field operations.",
+      "iconName": "Smartphone",
+      "displayOrder": 2,
+      "visibility": true,
+      "metaTitle": "Android App Development in Nashik | Mobile Apps | HackifyPro",
+      "metaDesc": "Custom Android app development in Nashik and Maharashtra by HackifyPro. Secure, feature-rich, high-performance mobile apps for businesses and startups."
+    },
+    {
+      "id": "srv-web-application-development",
+      "slug": "web-application-development",
+      "title": "Web Application Development",
+      "h1": "Enterprise Web Applications & SaaS Engineering",
+      "shortDesc": "Scalable, secure, and interactive cloud web applications, client portals, and bespoke SaaS platforms.",
+      "iconName": "Laptop",
+      "displayOrder": 3,
+      "visibility": true,
+      "metaTitle": "Web Application Development Company in Nashik | HackifyPro",
+      "metaDesc": "Custom web application development in Nashik, Maharashtra by HackifyPro. Enterprise SaaS, admin portals, and multi-user workflow systems."
+    },
+    {
+      "id": "srv-custom-software-development",
+      "slug": "custom-software-development",
+      "title": "Custom Software Development",
+      "h1": "Tailored Custom Software Development for Business Efficiency",
+      "shortDesc": "End-to-end custom software designed around your specific business logic, eliminating operational bottlenecks.",
+      "iconName": "Cpu",
+      "displayOrder": 4,
+      "visibility": true,
+      "metaTitle": "Custom Software Development in Nashik | HackifyPro",
+      "metaDesc": "Custom software development in Nashik & Maharashtra by HackifyPro. Bespoke management software, workflow automation, and specialized business tools."
+    },
+    {
+      "id": "srv-business-automation",
+      "slug": "business-automation",
+      "title": "Business Automation",
+      "h1": "Intelligent Business Automation & Workflow Systems",
+      "shortDesc": "Automate manual tasks, WhatsApp notifications, lead processing, and repetitive administrative workflows.",
+      "iconName": "Zap",
+      "displayOrder": 5,
+      "visibility": true,
+      "metaTitle": "Business Automation Services in Nashik | HackifyPro",
+      "metaDesc": "Streamline operations with custom business automation solutions in Nashik by HackifyPro. Automated WhatsApp messaging, lead routing, and CRM sync."
+    },
+    {
+      "id": "srv-software-maintenance",
+      "slug": "software-maintenance",
+      "title": "Software Maintenance & Support",
+      "h1": "Proactive Software Maintenance, Security Updates & Technical Support",
+      "shortDesc": "Keep your websites and applications fast, secure, backed up, and bug-free with dedicated maintenance retainers.",
+      "iconName": "Wrench",
+      "displayOrder": 6,
+      "visibility": true,
+      "metaTitle": "Software Maintenance & Support in Nashik | HackifyPro",
+      "metaDesc": "Comprehensive software maintenance services in Nashik by HackifyPro. Security patches, performance tuning, bug fixing, and continuous technical support."
+    },
+    {
+      "id": "srv-ui-ux-design",
+      "slug": "ui-ux-design",
+      "title": "UI/UX Design",
+      "h1": "Intuitive UI/UX Design & High-Conversion Digital Interfaces",
+      "shortDesc": "User-centric interface design, wireframes, and scalable design systems that delight users and drive conversions.",
+      "iconName": "Palette",
+      "displayOrder": 7,
+      "visibility": true,
+      "metaTitle": "UI/UX Design Services in Nashik | HackifyPro",
+      "metaDesc": "Professional UI/UX design services in Nashik and Maharashtra by HackifyPro. User research, mobile-first wireframing, design systems, and conversion UI."
+    }
+  ],
+  "homepage": {
+    "badge": "WEBSITES • ANDROID APPS • CUSTOM BUSINESS SOFTWARE",
+    "headingLine1": "We Build Websites, Android Apps & Custom Software",
+    "headingGradient": "That Grow Your Business.",
+    "description": "HackifyPro is a modern technology & software development company in Maharashtra. We build fast, search-optimized business websites, native Android applications, web applications, and complete management software for modern businesses.",
+    "ctaText": "Book Free Discovery Call",
+    "ctaUrl": "/appointment",
+    "secondaryCtaText": "Request Free Quote",
+    "secondaryCtaUrl": "/request-quote",
+    "heroImage": "/assets/hackifypro-shield.png"
+  },
+  "sectionsVisibility": {
+    "hero": true,
+    "services": true,
+    "projects": true,
+    "founder": true,
+    "products": true,
+    "testimonials": true,
+    "contact": true,
+    "faq": true,
+    "blog": true
+  }
+}

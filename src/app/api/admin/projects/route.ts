@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbProjects, PortfolioProject } from '@/lib/db';
-import { authenticateAdminRequest, cleanText } from '@/lib/security';
+import { dbProjects, dbAdminActivity, PortfolioProject } from '@/lib/db';
+import { authenticateAdminRequest, verifyAdminSessionToken, cleanText } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
+
+function getAdminEmail(req: NextRequest): string {
+  const authHeader = req.headers.get('authorization');
+  const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
+  if (token) {
+    const verified = verifyAdminSessionToken(token);
+    if (verified.valid && verified.email) return verified.email;
+  }
+  return 'admin@hackifypro.com';
+}
 
 export async function GET(req: NextRequest) {
   try {
     if (!authenticateAdminRequest(req)) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Admin session required.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
     }
 
     const projects = dbProjects.getAll();
@@ -23,10 +30,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     if (!authenticateAdminRequest(req)) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Admin session required.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -35,20 +39,66 @@ export async function POST(req: NextRequest) {
     }
 
     const title = cleanText(body.title, 150);
-    const category = cleanText(body.category, 100);
-    const summary = cleanText(body.summary, 600);
+    const category = cleanText(body.category, 100) || 'Web Application & SaaS';
+    const summary = cleanText(body.summary, 800) || '';
     const client = cleanText(body.client, 120) || 'HackifyPro Client';
-    const market = cleanText(body.market, 120) || 'India';
-    const problemSolved = cleanText(body.problemSolved, 600);
+    const market = cleanText(body.market, 120) || 'India & Global';
+    const problemSolved = cleanText(body.problemSolved, 800) || '';
     const image = cleanText(body.image, 300) || '/assets/hackifypro-workspace.png';
     const demoUrl = cleanText(body.demoUrl, 300);
     const status = cleanText(body.status, 100) || 'Live & Deployed Demonstration';
 
-    if (!title || !category || !summary) {
-      return NextResponse.json(
-        { error: 'Title, Category, and Summary are required.' },
-        { status: 400 }
-      );
+    if (!title) {
+      return NextResponse.json({ error: 'Title is required.' }, { status: 400 });
+    }
+
+    // Extended fields
+    const projectType = cleanText(body.projectType, 100) || 'Web Application';
+    const targetAudience = cleanText(body.targetAudience, 150) || 'Modern Businesses';
+    const visibility: 'published' | 'draft' | 'archived' =
+      body.visibility === 'draft' ? 'draft' : body.visibility === 'archived' ? 'archived' : 'published';
+    const featured = body.featured !== undefined ? Boolean(body.featured) : true;
+    const completionDate = cleanText(body.completionDate, 50) || new Date().toISOString().split('T')[0];
+    const location = cleanText(body.location, 100) || 'Maharashtra, India';
+    const shortDescription = cleanText(body.shortDescription, 400) || summary;
+    const fullDescription = typeof body.fullDescription === 'string' ? body.fullDescription : '';
+    const githubUrl = cleanText(body.githubUrl, 300);
+    const seoTitle = cleanText(body.seoTitle, 150) || `${title} | HackifyPro Software Portfolio`;
+    const seoDescription = cleanText(body.seoDescription, 250) || summary;
+
+    // Gallery array
+    let gallery = [];
+    if (Array.isArray(body.gallery)) {
+      gallery = body.gallery.map((g: any, idx: number) => ({
+        id: g.id || `img-${Date.now().toString(36)}-${idx}`,
+        url: cleanText(g.url, 400),
+        alt: cleanText(g.alt, 200) || title,
+        caption: cleanText(g.caption, 250) || '',
+        order: typeof g.order === 'number' ? g.order : idx + 1,
+      })).filter((g: any) => Boolean(g.url));
+    }
+
+    // Videos array
+    let videos = [];
+    if (Array.isArray(body.videos)) {
+      videos = body.videos.map((v: any, idx: number) => ({
+        id: v.id || `vid-${Date.now().toString(36)}-${idx}`,
+        title: cleanText(v.title, 150) || `${title} Video`,
+        url: cleanText(v.url, 400),
+        poster: cleanText(v.poster, 400),
+        type: v.type === 'file' ? 'file' : v.type === 'vimeo' ? 'vimeo' : v.type === 'youtube' ? 'youtube' : 'other',
+        order: typeof v.order === 'number' ? v.order : idx + 1,
+        position: v.position === 'before' ? 'before' : 'after',
+      })).filter((v: any) => Boolean(v.url));
+    }
+
+    // External URLs
+    let externalUrls = [];
+    if (Array.isArray(body.externalUrls)) {
+      externalUrls = body.externalUrls.map((u: any) => ({
+        label: cleanText(u.label, 100) || 'External Link',
+        url: cleanText(u.url, 300),
+      })).filter((u: any) => Boolean(u.url));
     }
 
     // Process mainFeatures
@@ -90,8 +140,29 @@ export async function POST(req: NextRequest) {
       techStack,
       image,
       demoUrl: demoUrl || undefined,
-      hasDemo: Boolean(demoUrl && demoUrl.trim().length > 0),
       status,
+      projectType,
+      targetAudience,
+      visibility,
+      featured,
+      completionDate,
+      location,
+      shortDescription,
+      fullDescription,
+      githubUrl,
+      externalUrls,
+      seoTitle,
+      seoDescription,
+      gallery,
+      videos,
+    });
+
+    dbAdminActivity.log({
+      action: 'CREATE_PROJECT',
+      targetType: 'project',
+      targetId: newProject.id,
+      description: `Created new project: ${newProject.title} (${newProject.category})`,
+      adminEmail: getAdminEmail(req),
     });
 
     return NextResponse.json({ success: true, project: newProject }, { status: 201 });
@@ -104,10 +175,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     if (!authenticateAdminRequest(req)) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Admin session required.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -125,16 +193,56 @@ export async function PUT(req: NextRequest) {
 
     if (body.title !== undefined) updates.title = cleanText(body.title, 150);
     if (body.category !== undefined) updates.category = cleanText(body.category, 100);
-    if (body.summary !== undefined) updates.summary = cleanText(body.summary, 600);
+    if (body.summary !== undefined) updates.summary = cleanText(body.summary, 800);
     if (body.client !== undefined) updates.client = cleanText(body.client, 120);
     if (body.market !== undefined) updates.market = cleanText(body.market, 120);
-    if (body.problemSolved !== undefined) updates.problemSolved = cleanText(body.problemSolved, 600);
+    if (body.problemSolved !== undefined) updates.problemSolved = cleanText(body.problemSolved, 800);
     if (body.image !== undefined) updates.image = cleanText(body.image, 300);
-    if (body.demoUrl !== undefined) {
-      updates.demoUrl = cleanText(body.demoUrl, 300);
-      updates.hasDemo = Boolean(updates.demoUrl && updates.demoUrl.trim().length > 0);
-    }
+    if (body.demoUrl !== undefined) updates.demoUrl = cleanText(body.demoUrl, 300);
     if (body.status !== undefined) updates.status = cleanText(body.status, 100);
+
+    if (body.projectType !== undefined) updates.projectType = cleanText(body.projectType, 100);
+    if (body.targetAudience !== undefined) updates.targetAudience = cleanText(body.targetAudience, 150);
+    if (body.visibility !== undefined) {
+      updates.visibility = body.visibility === 'draft' ? 'draft' : body.visibility === 'archived' ? 'archived' : 'published';
+    }
+    if (body.featured !== undefined) updates.featured = Boolean(body.featured);
+    if (body.completionDate !== undefined) updates.completionDate = cleanText(body.completionDate, 50);
+    if (body.location !== undefined) updates.location = cleanText(body.location, 100);
+    if (body.shortDescription !== undefined) updates.shortDescription = cleanText(body.shortDescription, 400);
+    if (body.fullDescription !== undefined) updates.fullDescription = typeof body.fullDescription === 'string' ? body.fullDescription : '';
+    if (body.githubUrl !== undefined) updates.githubUrl = cleanText(body.githubUrl, 300);
+    if (body.seoTitle !== undefined) updates.seoTitle = cleanText(body.seoTitle, 150);
+    if (body.seoDescription !== undefined) updates.seoDescription = cleanText(body.seoDescription, 250);
+
+    if (body.gallery !== undefined && Array.isArray(body.gallery)) {
+      updates.gallery = body.gallery.map((g: any, idx: number) => ({
+        id: g.id || `img-${Date.now().toString(36)}-${idx}`,
+        url: cleanText(g.url, 400),
+        alt: cleanText(g.alt, 200),
+        caption: cleanText(g.caption, 250),
+        order: typeof g.order === 'number' ? g.order : idx + 1,
+      })).filter((g: any) => Boolean(g.url));
+    }
+
+    if (body.videos !== undefined && Array.isArray(body.videos)) {
+      updates.videos = body.videos.map((v: any, idx: number) => ({
+        id: v.id || `vid-${Date.now().toString(36)}-${idx}`,
+        title: cleanText(v.title, 150),
+        url: cleanText(v.url, 400),
+        poster: cleanText(v.poster, 400),
+        type: v.type === 'file' ? 'file' : v.type === 'vimeo' ? 'vimeo' : v.type === 'youtube' ? 'youtube' : 'other',
+        order: typeof v.order === 'number' ? v.order : idx + 1,
+        position: v.position === 'before' ? 'before' : 'after',
+      })).filter((v: any) => Boolean(v.url));
+    }
+
+    if (body.externalUrls !== undefined && Array.isArray(body.externalUrls)) {
+      updates.externalUrls = body.externalUrls.map((u: any) => ({
+        label: cleanText(u.label, 100),
+        url: cleanText(u.url, 300),
+      })).filter((u: any) => Boolean(u.url));
+    }
 
     if (body.mainFeatures !== undefined) {
       if (Array.isArray(body.mainFeatures)) {
@@ -159,6 +267,15 @@ export async function PUT(req: NextRequest) {
     }
 
     const updated = dbProjects.update(id, updates);
+
+    dbAdminActivity.log({
+      action: 'UPDATE_PROJECT',
+      targetType: 'project',
+      targetId: id,
+      description: `Updated project: ${updated?.title}`,
+      adminEmail: getAdminEmail(req),
+    });
+
     return NextResponse.json({ success: true, project: updated });
   } catch (err: any) {
     console.error('Error updating project:', err);
@@ -166,13 +283,63 @@ export async function PUT(req: NextRequest) {
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  try {
+    if (!authenticateAdminRequest(req)) {
+      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+    }
+
+    // Reorder action
+    if (body.action === 'reorder' && Array.isArray(body.orderedIds)) {
+      const reordered = dbProjects.reorder(body.orderedIds);
+      dbAdminActivity.log({
+        action: 'REORDER_PROJECTS',
+        targetType: 'project',
+        description: `Reordered ${body.orderedIds.length} projects`,
+        adminEmail: getAdminEmail(req),
+      });
+      return NextResponse.json({ success: true, projects: reordered });
+    }
+
+    // Fast status / visibility / featured toggle
+    if (body.id) {
+      const updates: Partial<PortfolioProject> = {};
+      if (body.visibility !== undefined) updates.visibility = body.visibility;
+      if (body.featured !== undefined) updates.featured = Boolean(body.featured);
+      if (body.status !== undefined) updates.status = cleanText(body.status, 100);
+
+      const updated = dbProjects.update(body.id, updates);
+      if (!updated) {
+        return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+      }
+
+      dbAdminActivity.log({
+        action: 'TOGGLE_PROJECT_STATUS',
+        targetType: 'project',
+        targetId: body.id,
+        description: `Toggled status/visibility on: ${updated.title}`,
+        adminEmail: getAdminEmail(req),
+      });
+
+      return NextResponse.json({ success: true, project: updated });
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+  } catch (err: any) {
+    console.error('Error in project PATCH:', err);
+    return NextResponse.json({ error: 'Failed to patch project' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     if (!authenticateAdminRequest(req)) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Admin session required.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -189,10 +356,21 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
+    const projectToDelete = dbProjects.getById(id);
+    const title = projectToDelete?.title || id;
+
     const deleted = dbProjects.delete(id);
     if (!deleted) {
       return NextResponse.json({ error: 'Project not found or already deleted' }, { status: 404 });
     }
+
+    dbAdminActivity.log({
+      action: 'DELETE_PROJECT',
+      targetType: 'project',
+      targetId: id,
+      description: `Deleted project: ${title}`,
+      adminEmail: getAdminEmail(req),
+    });
 
     return NextResponse.json({ success: true, message: 'Project deleted successfully' });
   } catch (err: any) {

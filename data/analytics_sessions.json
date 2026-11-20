@@ -1,0 +1,26 @@
+{
+  "test_sid_1": {
+    "sessionId": "test_sid_1",
+    "visitorId": "test_vid_1",
+    "currentPath": "/portfolio",
+    "entryPath": "/portfolio",
+    "device": "desktop",
+    "browser": "Chrome",
+    "os": "Windows",
+    "startedAt": "2026-11-20T07:26:35.680Z",
+    "lastHeartbeat": "2026-11-20T07:26:35.680Z",
+    "totalPageviews": 1
+  },
+  "test_sid_2": {
+    "sessionId": "test_sid_2",
+    "visitorId": "test_vid_2",
+    "currentPath": "/appointment",
+    "entryPath": "/appointment",
+    "device": "mobile",
+    "browser": "Safari",
+    "os": "iOS",
+    "startedAt": "2026-11-20T07:26:35.711Z",
+    "lastHeartbeat": "2026-11-20T07:26:35.711Z",
+    "totalPageviews": 1
+  }
+}

@@ -4,6 +4,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import GoogleTag from '@/components/shared/GoogleTag';
 import FirebaseAnalytics from '@/components/shared/FirebaseAnalytics';
+import VisitorTracker from '@/components/shared/VisitorTracker';
 import WhatsAppFloating from '@/components/shared/WhatsAppFloating';
 import DPDPConsentBanner from '@/components/shared/DPDPConsentBanner';
 import { company } from '@/data/company';
@@ -225,6 +226,7 @@ export default function RootLayout({
       <body className="bg-[#080B12] text-[#E8EDF5] min-h-screen flex flex-col antialiased">
         <GoogleTag />
         <FirebaseAnalytics />
+        <VisitorTracker />
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />

@@ -1,3 +1,26 @@
+export interface ProjectGalleryImage {
+  id: string;
+  url: string;
+  alt?: string;
+  caption?: string;
+  order: number;
+}
+
+export interface ProjectVideo {
+  id: string;
+  title: string;
+  url: string;
+  poster?: string;
+  type: 'file' | 'youtube' | 'vimeo' | 'other';
+  order: number;
+  position: 'before' | 'after'; // before or after gallery
+}
+
+export interface ProjectExternalLink {
+  label: string;
+  url: string;
+}
+
 export interface PortfolioProject {
   id: string;
   slug: string;
@@ -13,6 +36,26 @@ export interface PortfolioProject {
   demoUrl?: string;
   hasDemo: boolean;
   status: string;
+
+  // Upgraded Fields
+  projectType?: string;
+  targetAudience?: string;
+  visibility?: 'published' | 'draft' | 'archived';
+  featured?: boolean;
+  completionDate?: string;
+  location?: string;
+  gallery?: ProjectGalleryImage[];
+  videos?: ProjectVideo[];
+  shortDescription?: string;
+  fullDescription?: string;
+  githubUrl?: string;
+  externalUrls?: ProjectExternalLink[];
+  seoTitle?: string;
+  seoDescription?: string;
+  displayOrder?: number;
+  viewsCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const portfolioProjects: PortfolioProject[] = [
@@ -36,7 +79,22 @@ export const portfolioProjects: PortfolioProject[] = [
     image: "/assets/hackifypro-workspace.png",
     demoUrl: "/appointment?service=hospital-management-software",
     hasDemo: true,
-    status: "Live & Deployed Demonstration"
+    status: "Live & Deployed Demonstration",
+    projectType: "Full-Stack Web ERP",
+    targetAudience: "Clinics, Hospitals & Healthcare Providers",
+    visibility: "published",
+    featured: true,
+    displayOrder: 1,
+    viewsCount: 142,
+    gallery: [
+      { id: "img-1", url: "/assets/hackifypro-workspace.png", alt: "HMS Dashboard View", caption: "Doctor & OPD Queue Management Overview", order: 1 },
+      { id: "img-2", url: "/assets/hackifypro-office.png", alt: "Billing & Pharmacy Module", caption: "Integrated Pharmacy & Multi-Service Billing", order: 2 }
+    ],
+    videos: [
+      { id: "vid-1", title: "HMS Walkthrough & Architecture", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", type: "youtube", order: 1, position: "after" }
+    ],
+    githubUrl: "https://github.com/Barela08",
+    createdAt: "2026-10-15T10:00:00.000Z"
   },
   {
     id: "proj-2",
@@ -58,7 +116,18 @@ export const portfolioProjects: PortfolioProject[] = [
     image: "/assets/hackifypro-office.png",
     demoUrl: "/appointment?service=business-automation",
     hasDemo: true,
-    status: "Functional Internal System"
+    status: "Functional Internal System",
+    projectType: "SaaS & Outreach Platform",
+    targetAudience: "Agencies, Freelancers & Sales Teams",
+    visibility: "published",
+    featured: true,
+    displayOrder: 2,
+    viewsCount: 98,
+    gallery: [
+      { id: "img-3", url: "/assets/hackifypro-office.png", alt: "LeadSaathi Dashboard", caption: "Lead Discovery & Meta Cloud API CRM", order: 1 }
+    ],
+    githubUrl: "https://github.com/Barela08",
+    createdAt: "2026-10-28T14:30:00.000Z"
   },
   {
     id: "proj-3",
@@ -80,6 +149,17 @@ export const portfolioProjects: PortfolioProject[] = [
     image: "/assets/hackifypro-storefront.png",
     demoUrl: "https://www.nileshbarela.site",
     hasDemo: true,
-    status: "Production Ready"
+    status: "Production Ready",
+    projectType: "Corporate Platform",
+    targetAudience: "Enterprises, SMEs & Local Businesses",
+    visibility: "published",
+    featured: true,
+    displayOrder: 3,
+    viewsCount: 312,
+    gallery: [
+      { id: "img-4", url: "/assets/hackifypro-storefront.png", alt: "Storefront UI", caption: "Production Responsive Storefront", order: 1 }
+    ],
+    githubUrl: "https://github.com/Barela08/Nilesh-barela-",
+    createdAt: "2026-11-01T08:00:00.000Z"
   }
 ];
