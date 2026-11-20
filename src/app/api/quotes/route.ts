@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
       estimatedBudget: sanitizeHtml(estimatedBudget),
       expectedTimeline: sanitizeHtml(expectedTimeline),
       additionalRequirements: sanitizeHtml(additionalRequirements),
+      visitorId: body.visitorId ? cleanText(body.visitorId, 64) : undefined,
       ipAddress: ip,
     });
 

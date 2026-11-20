@@ -56,9 +56,32 @@ import {
   Monitor,
   AlertTriangle,
   Play,
-  RotateCcw
+  RotateCcw,
+  StopCircle,
+  UserCheck,
+  ShieldAlert,
+  KeyRound,
+  Ban
 } from 'lucide-react';
 import { PortfolioProject, ProjectGalleryImage, ProjectVideo } from '@/data/portfolio';
+import { VisitorProfile } from '@/lib/visitorIntelligence';
+
+// Upload Queue Item Interface
+interface UploadQueueItem {
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+  previewUrl: string;
+  status: 'queued' | 'preparing' | 'uploading' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  progress: number;
+  loadedBytes: number;
+  totalBytes: number;
+  elapsedSeconds: number;
+  errorMessage?: string;
+  xhr?: XMLHttpRequest;
+}
 
 // Initial Project Form State
 const INITIAL_PROJECT_FORM: Partial<PortfolioProject> & {
@@ -97,14 +120,26 @@ const INITIAL_PROJECT_FORM: Partial<PortfolioProject> & {
 export default function AdminDashboardPage() {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id?: string; name?: string; email: string; role: 'owner' | 'admin' | 'editor' | 'viewer' } | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number | null>(null);
+  const [recoveryModalOpen, setRecoveryModalOpen] = useState(false);
+  const [recoveryKeyInput, setRecoveryKeyInput] = useState('');
+  const [recoveryMsg, setRecoveryMsg] = useState<{ success?: boolean; text: string } | null>(null);
+
+  // Permission Restriction Modal State
+  const [permissionDeniedModal, setPermissionDeniedModal] = useState<{
+    requiredRole: string;
+    currentRole: string;
+    reason: string;
+  } | null>(null);
 
   // Active Main Navigation Tab
   const [currentTab, setCurrentTab] = useState<
-    'dashboard' | 'projects' | 'media' | 'analytics' | 'leads' | 'content' | 'system'
+    'dashboard' | 'projects' | 'media' | 'analytics' | 'visitors' | 'leads' | 'content' | 'system'
   >('dashboard');
 
   // Leads CRM Subtab
@@ -114,9 +149,6 @@ export default function AdminDashboardPage() {
   const [leadsStatusFilter, setLeadsStatusFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
   const [leadNotesInput, setLeadNotesInput] = useState('');
-  const [leadMeetingLinkInput, setLeadMeetingLinkInput] = useState('');
-  const [leadPriorityInput, setLeadPriorityInput] = useState<'low' | 'medium' | 'high'>('medium');
-  const [leadFollowUpInput, setLeadFollowUpInput] = useState('');
   const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
 
   // Leads Data
@@ -153,16 +185,26 @@ export default function AdminDashboardPage() {
   const [previewProject, setPreviewProject] = useState<PortfolioProject | null>(null);
   const [deleteConfirmProject, setDeleteConfirmProject] = useState<PortfolioProject | null>(null);
 
-  // Media Manager State
+  // Media Manager & Upload Queue State
   const [mediaList, setMediaList] = useState<any[]>([]);
   const [mediaTypeFilter, setMediaTypeFilter] = useState<string>('all');
   const [mediaSearch, setMediaSearch] = useState('');
-  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [mediaInUseWarning, setMediaInUseWarning] = useState<{ media: any; references: string[] } | null>(null);
   const [selectedMediaPreview, setSelectedMediaPreview] = useState<any | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Visitor Intelligence State
+  const [visitorsList, setVisitorsList] = useState<VisitorProfile[]>([]);
+  const [visitorStatusFilter, setVisitorStatusFilter] = useState<string>('all');
+  const [visitorCountFilter, setVisitorCountFilter] = useState<string>('all');
+  const [visitorFormFilter, setVisitorFormFilter] = useState<string>('all');
+  const [visitorRangeFilter, setVisitorRangeFilter] = useState<string>('7d');
+  const [visitorSearch, setVisitorSearch] = useState('');
+  const [selectedVisitorDetail, setSelectedVisitorDetail] = useState<VisitorProfile | null>(null);
+  const [funnelStats, setFunnelStats] = useState<any>(null);
 
   // Visitor Analytics State
   const [analyticsRange, setAnalyticsRange] = useState<'today' | '7d' | '30d' | '90d' | 'all'>('7d');
@@ -187,11 +229,30 @@ export default function AdminDashboardPage() {
   // Session check on load
   useEffect(() => {
     const token = getToken();
+    const storedUser = localStorage.getItem('hp_admin_user');
     if (token) {
       setIsAuthenticated(true);
+      if (storedUser) {
+        try {
+          setCurrentUser(JSON.parse(storedUser));
+        } catch {
+          setCurrentUser({ email: 'hackifypro@gmail.com', role: 'owner' });
+        }
+      } else {
+        setCurrentUser({ email: 'hackifypro@gmail.com', role: 'owner' });
+      }
       fetchAllAdminData();
     }
   }, []);
+
+  // Cooldown countdown timer
+  useEffect(() => {
+    if (!cooldownRemaining || cooldownRemaining <= 0) return;
+    const interval = setInterval(() => {
+      setCooldownRemaining((prev) => (prev && prev > 1 ? prev - 1 : null));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownRemaining]);
 
   // Fetch all admin data
   const fetchAllAdminData = () => {
@@ -199,6 +260,7 @@ export default function AdminDashboardPage() {
     fetchProjects();
     fetchMedia();
     fetchAnalytics(analyticsRange);
+    fetchVisitors();
     fetchSiteContent();
     fetchActivityLogs();
   };
@@ -207,6 +269,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchAnalytics(analyticsRange);
+      fetchVisitors();
     }
   }, [analyticsRange, isAuthenticated]);
 
@@ -216,11 +279,34 @@ export default function AdminDashboardPage() {
     const interval = setInterval(() => {
       fetchLeads();
       fetchAnalytics(analyticsRange);
+      fetchVisitors();
     }, 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated, analyticsRange]);
 
-  // Login Handler
+  // Permission Check Helper
+  const requirePermission = (permission: string, actionName: string): boolean => {
+    const role = currentUser?.role || 'viewer';
+    if (role === 'owner') return true;
+
+    const allowed = (
+      (role === 'admin' && ['manage_projects', 'manage_media', 'manage_content', 'manage_leads', 'view_analytics'].includes(permission)) ||
+      (role === 'editor' && ['manage_projects', 'manage_media', 'manage_content', 'view_leads', 'view_analytics'].includes(permission)) ||
+      (role === 'viewer' && ['view_analytics', 'view_projects', 'view_leads'].includes(permission))
+    );
+
+    if (!allowed) {
+      setPermissionDeniedModal({
+        requiredRole: permission.startsWith('delete') || permission.startsWith('security') ? 'Owner' : 'Admin or Editor',
+        currentRole: role.toUpperCase(),
+        reason: `Your account role does not possess the "${permission}" permission required to ${actionName}.`,
+      });
+      return false;
+    }
+    return true;
+  };
+
+  // Login Handler with Progressive Cooldown
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
@@ -235,10 +321,15 @@ export default function AdminDashboardPage() {
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 429 && data.retryAfterSeconds) {
+          setCooldownRemaining(data.retryAfterSeconds);
+        }
         throw new Error(data.error || 'Invalid credentials');
       }
 
       localStorage.setItem('hp_admin_token', data.token);
+      localStorage.setItem('hp_admin_user', JSON.stringify(data.user));
+      setCurrentUser(data.user);
       setIsAuthenticated(true);
       fetchAllAdminData();
     } catch (err: any) {
@@ -248,9 +339,43 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleLogout = () => {
+  // Logout Handler (revokes session token server-side)
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+    } catch {}
     localStorage.removeItem('hp_admin_token');
+    localStorage.removeItem('hp_admin_user');
     setIsAuthenticated(false);
+    setCurrentUser(null);
+  };
+
+  // Emergency Recovery Unlock
+  const handleEmergencyUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRecoveryMsg(null);
+    try {
+      const res = await fetch('/api/admin/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recoveryKey: recoveryKeyInput, identifier: email || undefined }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setRecoveryMsg({ success: true, text: data.message });
+        setCooldownRemaining(null);
+        setTimeout(() => {
+          setRecoveryModalOpen(false);
+        }, 1500);
+      } else {
+        setRecoveryMsg({ success: false, text: data.error || 'Unlock failed' });
+      }
+    } catch (err: any) {
+      setRecoveryMsg({ success: false, text: err.message || 'Unlock failed' });
+    }
   };
 
   // 1. Leads API
@@ -271,6 +396,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleUpdateLead = async (type: string, id: string, updates: any) => {
+    if (!requirePermission('manage_leads', 'update lead status')) return;
     setUpdatingLeadId(id);
     try {
       const res = await fetch('/api/admin/leads', {
@@ -295,6 +421,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleDeleteLead = async (type: string, id: string) => {
+    if (!requirePermission('delete_leads', 'permanently delete leads')) return;
     if (!confirm(`Are you sure you want to permanently delete this ${type}?`)) return;
     try {
       const res = await fetch(`/api/admin/leads?type=${type}&id=${id}`, {
@@ -328,6 +455,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleOpenAddProject = () => {
+    if (!requirePermission('manage_projects', 'create new projects')) return;
     setIsEditingProject(false);
     setProjectForm({
       ...INITIAL_PROJECT_FORM,
@@ -339,6 +467,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleOpenEditProject = (proj: PortfolioProject) => {
+    if (!requirePermission('manage_projects', 'edit project details')) return;
     setIsEditingProject(true);
     setProjectForm({
       id: proj.id,
@@ -373,6 +502,7 @@ export default function AdminDashboardPage() {
 
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requirePermission('manage_projects', 'save project modifications')) return;
     setProjectSubmitting(true);
     setProjectActionMsg(null);
 
@@ -437,6 +567,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleDeleteProject = async (id: string) => {
+    if (!requirePermission('manage_projects', 'delete portfolio projects')) return;
     try {
       const res = await fetch(`/api/admin/projects?id=${id}`, {
         method: 'DELETE',
@@ -452,6 +583,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleToggleProjectVisibility = async (id: string, currentVis: string) => {
+    if (!requirePermission('manage_projects', 'toggle project visibility')) return;
     const nextVis = currentVis === 'published' ? 'draft' : 'published';
     try {
       await fetch('/api/admin/projects', {
@@ -469,6 +601,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleReorderProject = async (index: number, direction: 'up' | 'down') => {
+    if (!requirePermission('manage_projects', 'reorder portfolio projects')) return;
     const newProjects = [...projects];
     const targetIdx = direction === 'up' ? index - 1 : index + 1;
     if (targetIdx < 0 || targetIdx >= newProjects.length) return;
@@ -497,7 +630,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // 3. Media API
+  // 3. Media API & Drag-and-Drop Queue with Real Progress and Genuine Cancellation
   const fetchMedia = async () => {
     try {
       const res = await fetch('/api/admin/media', {
@@ -512,40 +645,142 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleFileUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    setIsUploadingMedia(true);
-    setUploadProgress(`Uploading ${files.length} file(s)...`);
+  const addFilesToUploadQueue = (files: FileList | File[]) => {
+    if (!requirePermission('manage_media', 'upload media assets')) return;
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const formData = new FormData();
-      formData.append('file', file);
+    const newItems: UploadQueueItem[] = fileArray.map((file) => ({
+      id: `up_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`,
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type || 'application/octet-stream',
+      previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : '',
+      status: 'queued',
+      progress: 0,
+      loadedBytes: 0,
+      totalBytes: file.size,
+      elapsedSeconds: 0,
+    }));
 
-      try {
-        const res = await fetch('/api/admin/media/upload', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${getToken()}` },
-          body: formData,
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          alert(`Upload error for ${file.name}: ${data.error}`);
-        }
-      } catch (err) {
-        console.error('Upload failed', err);
+    setUploadQueue((prev) => [...newItems, ...prev]);
+
+    // Start uploads asynchronously
+    newItems.forEach((item) => {
+      startRealUpload(item);
+    });
+  };
+
+  const startRealUpload = (item: UploadQueueItem) => {
+    const xhr = new XMLHttpRequest();
+    item.xhr = xhr;
+    const startTime = Date.now();
+
+    // Update status to preparing / uploading
+    setUploadQueue((prev) =>
+      prev.map((q) => (q.id === item.id ? { ...q, status: 'uploading', xhr } : q))
+    );
+
+    // Track real progress
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        setUploadQueue((prev) =>
+          prev.map((q) =>
+            q.id === item.id
+              ? {
+                  ...q,
+                  progress: percent,
+                  loadedBytes: event.loaded,
+                  totalBytes: event.total,
+                  elapsedSeconds: elapsed,
+                  status: percent === 100 ? 'processing' : 'uploading',
+                }
+              : q
+          )
+        );
       }
-    }
+    };
 
-    setIsUploadingMedia(false);
-    setUploadProgress(null);
-    fetchMedia();
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        setUploadQueue((prev) =>
+          prev.map((q) => (q.id === item.id ? { ...q, status: 'completed', progress: 100 } : q))
+        );
+        fetchMedia();
+      } else {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          setUploadQueue((prev) =>
+            prev.map((q) =>
+              q.id === item.id ? { ...q, status: 'failed', errorMessage: res.error || 'Upload rejected' } : q
+            )
+          );
+        } catch {
+          setUploadQueue((prev) =>
+            prev.map((q) => (q.id === item.id ? { ...q, status: 'failed', errorMessage: 'Server error' } : q))
+          );
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      setUploadQueue((prev) =>
+        prev.map((q) => (q.id === item.id ? { ...q, status: 'failed', errorMessage: 'Network connection error' } : q))
+      );
+    };
+
+    xhr.onabort = () => {
+      setUploadQueue((prev) =>
+        prev.map((q) => (q.id === item.id ? { ...q, status: 'cancelled', errorMessage: 'Upload aborted by user' } : q))
+      );
+    };
+
+    const formData = new FormData();
+    formData.append('file', item.file);
+
+    xhr.open('POST', '/api/admin/media/upload');
+    xhr.setRequestHeader('Authorization', `Bearer ${getToken()}`);
+    xhr.send(formData);
+  };
+
+  // Genuine Cancellation Controls
+  const cancelUpload = (id: string) => {
+    setUploadQueue((prev) =>
+      prev.map((q) => {
+        if (q.id === id) {
+          if (q.xhr && (q.status === 'uploading' || q.status === 'processing')) {
+            q.xhr.abort();
+          }
+          return { ...q, status: 'cancelled', errorMessage: 'Cancelled by user' };
+        }
+        return q;
+      })
+    );
+  };
+
+  const cancelAllUploads = () => {
+    setUploadQueue((prev) =>
+      prev.map((q) => {
+        if ((q.status === 'uploading' || q.status === 'processing') && q.xhr) {
+          q.xhr.abort();
+        }
+        if (q.status === 'uploading' || q.status === 'processing' || q.status === 'queued') {
+          return { ...q, status: 'cancelled', errorMessage: 'Cancelled by user' };
+        }
+        return q;
+      })
+    );
+  };
+
+  const retryUpload = (item: UploadQueueItem) => {
+    startRealUpload({ ...item, status: 'queued', progress: 0, loadedBytes: 0 });
   };
 
   const handleDeleteMedia = async (mediaItem: any, force = false) => {
+    if (!requirePermission('manage_media', 'delete media assets')) return;
     try {
       const res = await fetch(`/api/admin/media?id=${mediaItem.id}&force=${force}`, {
         method: 'DELETE',
@@ -574,7 +809,24 @@ export default function AdminDashboardPage() {
     setTimeout(() => setCopiedUrl(null), 2500);
   };
 
-  // 4. Visitor Analytics API
+  // 4. Visitor Intelligence API
+  const fetchVisitors = async () => {
+    try {
+      const url = `/api/admin/visitors?status=${visitorStatusFilter}&visitCount=${visitorCountFilter}&formFilter=${visitorFormFilter}&range=${visitorRangeFilter}${visitorSearch ? `&search=${encodeURIComponent(visitorSearch)}` : ''}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setVisitorsList(json.visitors || []);
+        setFunnelStats(json.funnel || null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch visitors', err);
+    }
+  };
+
+  // 5. Visitor Analytics API
   const fetchAnalytics = async (range: string) => {
     setAnalyticsLoading(true);
     try {
@@ -592,7 +844,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // 5. Site Content & Links API
+  // 6. Site Content & Links API
   const fetchSiteContent = async () => {
     try {
       const res = await fetch('/api/admin/content', {
@@ -608,6 +860,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleSaveSiteContent = async () => {
+    if (!requirePermission('manage_content', 'save website content and links')) return;
     if (!siteContent) return;
     setContentSaving(true);
     setContentSaveMsg(null);
@@ -634,10 +887,10 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // 6. System Audit Logs API
+  // 7. System Audit Logs API
   const fetchActivityLogs = async () => {
     try {
-      const res = await fetch('/api/admin/activity?limit=50', {
+      const res = await fetch('/api/admin/activity?limit=100', {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       if (res.ok) {
@@ -758,7 +1011,7 @@ export default function AdminDashboardPage() {
   }, [filteredAppointments]);
 
   // -------------------------------------------------------------
-  // LOGIN SCREEN
+  // LOGIN SCREEN WITH PROGRESSIVE COOLDOWN & UNLOCK RECOVERY
   // -------------------------------------------------------------
   if (!isAuthenticated) {
     return (
@@ -785,7 +1038,16 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          {loginError && (
+          {cooldownRemaining !== null && (
+            <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center space-x-3 text-amber-300 text-xs font-mono">
+              <Clock className="w-4 h-4 flex-shrink-0 animate-spin" />
+              <span>
+                Progressive Cooldown Active: Access locked for <strong>{cooldownRemaining}s</strong> to prevent brute-force attacks.
+              </span>
+            </div>
+          )}
+
+          {loginError && !cooldownRemaining && (
             <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center space-x-3 text-red-400 text-xs font-mono">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{loginError}</span>
@@ -797,37 +1059,35 @@ export default function AdminDashboardPage() {
               <label className="block text-xs font-mono text-[#9AA3B8] mb-1.5 uppercase tracking-wider">
                 Admin Email
               </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="hackifypro@gmail.com"
-                  className="w-full px-4 py-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-white text-sm focus:outline-none focus:border-[#00E676] transition-colors"
-                />
-              </div>
+              <input
+                type="email"
+                required
+                disabled={Boolean(cooldownRemaining)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="hackifypro@gmail.com"
+                className="w-full px-4 py-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-white text-sm focus:outline-none focus:border-[#00E676] transition-colors disabled:opacity-50"
+              />
             </div>
 
             <div>
               <label className="block text-xs font-mono text-[#9AA3B8] mb-1.5 uppercase tracking-wider">
                 Password
               </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full px-4 py-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-white text-sm focus:outline-none focus:border-[#00E676] transition-colors"
-                />
-              </div>
+              <input
+                type="password"
+                required
+                disabled={Boolean(cooldownRemaining)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full px-4 py-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-white text-sm focus:outline-none focus:border-[#00E676] transition-colors disabled:opacity-50"
+              />
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || Boolean(cooldownRemaining)}
               className="w-full mt-2 py-3 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {loading ? (
@@ -844,10 +1104,65 @@ export default function AdminDashboardPage() {
             </button>
           </form>
 
-          <div className="mt-8 text-center text-[11px] font-mono text-[#64748B]">
-            Protected with SHA-256 HMAC &bull; Rate-Limited
+          <div className="mt-6 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
+            <span>Bcrypt Hashed &bull; SHA-256 HMAC</span>
+            <button
+              onClick={() => {
+                setRecoveryMsg(null);
+                setRecoveryModalOpen(true);
+              }}
+              className="text-[#38BDF8] hover:underline"
+            >
+              Emergency Unlock
+            </button>
           </div>
         </div>
+
+        {/* Emergency Recovery Unlock Modal */}
+        {recoveryModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-[#0F1624] border border-[#1E293B] rounded-3xl w-full max-w-md p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
+                <div className="flex items-center space-x-2 text-white">
+                  <KeyRound className="w-4 h-4 text-[#38BDF8]" />
+                  <h3 className="text-sm font-bold">Owner Emergency Unlock</h3>
+                </div>
+                <button onClick={() => setRecoveryModalOpen(false)} className="text-[#9AA3B8] hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-[#9AA3B8]">
+                If your IP or account has been locked due to repeated attempts, enter the secret <code>ADMIN_SECRET_KEY</code> from your environment configuration to immediately lift the lock.
+              </p>
+
+              {recoveryMsg && (
+                <div className={`p-3 rounded-xl text-xs font-mono ${
+                  recoveryMsg.success ? 'bg-[#00E676]/10 text-[#00E676] border border-[#00E676]/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                }`}>
+                  {recoveryMsg.text}
+                </div>
+              )}
+
+              <form onSubmit={handleEmergencyUnlock} className="space-y-3">
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter ADMIN_SECRET_KEY..."
+                  value={recoveryKeyInput}
+                  onChange={(e) => setRecoveryKeyInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-xl bg-[#38BDF8] text-[#080B12] font-mono text-xs font-bold uppercase"
+                >
+                  Lift Security Lockout
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -874,8 +1189,8 @@ export default function AdminDashboardPage() {
               />
               <span className="font-heading font-extrabold text-lg text-white">
                 Hackify<span className="text-[#00E676]">Pro</span>
-                <span className="text-xs font-mono text-[#9AA3B8] font-normal ml-2 px-2 py-0.5 rounded bg-[#141D30] border border-[#1E293B]">
-                  Admin
+                <span className="text-xs font-mono text-[#9AA3B8] font-normal ml-2 px-2 py-0.5 rounded bg-[#141D30] border border-[#1E293B] uppercase">
+                  {currentUser?.role || 'Admin'}
                 </span>
               </span>
             </Link>
@@ -918,7 +1233,7 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={handleLogout}
-              title="Logout"
+              title="Logout & Revoke Session"
               className="p-2 rounded-lg bg-[#0F1624] border border-[#1E293B] text-red-400 hover:text-red-300 hover:border-red-500/50 transition-colors"
             >
               <LogOut className="w-4 h-4" />
@@ -932,9 +1247,10 @@ export default function AdminDashboardPage() {
           <nav className="flex space-x-1 overflow-x-auto py-2 scrollbar-none">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+              { id: 'visitors', label: 'Visitor Intelligence', icon: Users, badge: visitorsList.length },
               { id: 'projects', label: 'Projects & Demos', icon: Layers, badge: projects.length },
               { id: 'media', label: 'Media Manager', icon: ImageIcon, badge: mediaList.length },
-              { id: 'analytics', label: 'Visitor Analytics', icon: Activity },
+              { id: 'analytics', label: 'Traffic Analytics', icon: Activity },
               { id: 'leads', label: 'Inquiries & CRM', icon: MessageSquare, badge: leadsData.metrics.totalLeads },
               { id: 'content', label: 'Content & Links', icon: Globe },
               { id: 'system', label: 'Audit & Security', icon: Shield },
@@ -974,7 +1290,9 @@ export default function AdminDashboardPage() {
         multiple
         accept="image/*,video/*,application/pdf"
         className="hidden"
-        onChange={(e) => handleFileUpload(e.target.files)}
+        onChange={(e) => {
+          if (e.target.files) addFilesToUploadQueue(e.target.files);
+        }}
       />
 
       {/* MAIN CONTENT AREA */}
@@ -989,21 +1307,42 @@ export default function AdminDashboardPage() {
             {/* Real Stats Cards Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               
-              {/* Projects Stat */}
+              {/* Visitor Intelligence Stat */}
               <div 
-                onClick={() => setCurrentTab('projects')}
+                onClick={() => setCurrentTab('visitors')}
                 className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#00E676]/40 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-[#9AA3B8]">Total Projects</span>
+                  <span className="text-xs font-mono text-[#9AA3B8]">Tracked Browsers</span>
                   <div className="p-2 rounded-xl bg-[#080B12] text-[#00E676]">
+                    <Users className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-heading font-extrabold text-white mt-2">
+                  {visitorsList.length}
+                </div>
+                <div className="text-xs font-mono text-[#00E676] mt-1 flex items-center space-x-2">
+                  <span>{visitorsList.filter((v) => v.isReturning).length} Returning</span>
+                  <span className="text-[#64748B]">&bull;</span>
+                  <span className="text-[#38BDF8]">{visitorsList.filter((v) => v.conversions.length > 0).length} Converted</span>
+                </div>
+              </div>
+
+              {/* Projects Stat */}
+              <div 
+                onClick={() => setCurrentTab('projects')}
+                className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#38BDF8]/40 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-[#9AA3B8]">Total Projects</span>
+                  <div className="p-2 rounded-xl bg-[#080B12] text-[#38BDF8]">
                     <Layers className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl sm:text-3xl font-heading font-extrabold text-white mt-2">
                   {projects.length}
                 </div>
-                <div className="text-xs font-mono text-[#00E676] mt-1 flex items-center space-x-2">
+                <div className="text-xs font-mono text-[#38BDF8] mt-1 flex items-center space-x-2">
                   <span>{projects.filter((p) => !p.visibility || p.visibility === 'published').length} Published</span>
                   <span className="text-[#64748B]">&bull;</span>
                   <span className="text-[#9AA3B8]">{projects.filter((p) => p.visibility === 'draft').length} Draft</span>
@@ -1013,18 +1352,18 @@ export default function AdminDashboardPage() {
               {/* Inquiries & Leads Stat */}
               <div 
                 onClick={() => { setCurrentTab('leads'); setLeadTab('enquiries'); }}
-                className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#38BDF8]/40 transition-all cursor-pointer group"
+                className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#A78BFA]/40 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-[#9AA3B8]">Total Inquiries</span>
-                  <div className="p-2 rounded-xl bg-[#080B12] text-[#38BDF8]">
+                  <span className="text-xs font-mono text-[#9AA3B8]">Inquiries</span>
+                  <div className="p-2 rounded-xl bg-[#080B12] text-[#A78BFA]">
                     <MessageSquare className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl sm:text-3xl font-heading font-extrabold text-white mt-2">
                   {leadsData.metrics.totalEnquiries}
                 </div>
-                <div className="text-xs font-mono text-[#38BDF8] mt-1">
+                <div className="text-xs font-mono text-[#A78BFA] mt-1">
                   {leadsData.metrics.newEnquiries} New / Unhandled
                 </div>
               </div>
@@ -1032,41 +1371,19 @@ export default function AdminDashboardPage() {
               {/* Appointments Stat */}
               <div 
                 onClick={() => { setCurrentTab('leads'); setLeadTab('appointments'); }}
-                className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#A78BFA]/40 transition-all cursor-pointer group"
+                className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#00E676]/40 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono text-[#9AA3B8]">Appointments</span>
-                  <div className="p-2 rounded-xl bg-[#080B12] text-[#A78BFA]">
+                  <div className="p-2 rounded-xl bg-[#080B12] text-[#00E676]">
                     <Calendar className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl sm:text-3xl font-heading font-extrabold text-white mt-2">
                   {leadsData.metrics.totalAppointments}
                 </div>
-                <div className="text-xs font-mono text-[#A78BFA] mt-1">
-                  {leadsData.appointments.filter((a) => a.status === 'scheduled' || a.status === 'new').length} Upcoming / Pending
-                </div>
-              </div>
-
-              {/* Real Visitors Stat */}
-              <div 
-                onClick={() => setCurrentTab('analytics')}
-                className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#00E676]/40 transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-[#9AA3B8]">Today's Visitors</span>
-                  <div className="p-2 rounded-xl bg-[#080B12] text-[#00E676]">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-heading font-extrabold text-white mt-2 flex items-center space-x-2">
-                  <span>{analyticsStats?.todayVisitors || 0}</span>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#00E676]/10 text-[#00E676] font-normal">
-                    {analyticsStats?.liveVisitorsCount || 1} live
-                  </span>
-                </div>
-                <div className="text-xs font-mono text-[#9AA3B8] mt-1">
-                  {analyticsStats?.totalPageViews || 0} Total Pageviews
+                <div className="text-xs font-mono text-[#00E676] mt-1">
+                  {leadsData.appointments.filter((a) => a.status === 'scheduled' || a.status === 'new').length} Scheduled / Pending
                 </div>
               </div>
 
@@ -1104,30 +1421,90 @@ export default function AdminDashboardPage() {
                 </button>
 
                 <button
-                  onClick={() => { setCurrentTab('leads'); setLeadTab('enquiries'); }}
+                  onClick={() => setCurrentTab('visitors')}
                   className="px-3.5 py-2 rounded-xl bg-[#141D30] border border-[#1E293B] text-white hover:border-[#00E676] text-xs font-mono flex items-center space-x-1.5 transition-colors"
                 >
-                  <MessageSquare className="w-3.5 h-3.5 text-[#00E676]" />
+                  <Users className="w-3.5 h-3.5 text-[#00E676]" />
+                  <span>Visitor Intelligence</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentTab('leads'); setLeadTab('enquiries'); }}
+                  className="px-3.5 py-2 rounded-xl bg-[#141D30] border border-[#1E293B] text-white hover:border-[#A78BFA] text-xs font-mono flex items-center space-x-1.5 transition-colors"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-[#A78BFA]" />
                   <span>View Inquiries</span>
                 </button>
 
                 <button
                   onClick={() => { setCurrentTab('leads'); setLeadTab('appointments'); }}
-                  className="px-3.5 py-2 rounded-xl bg-[#141D30] border border-[#1E293B] text-white hover:border-[#A78BFA] text-xs font-mono flex items-center space-x-1.5 transition-colors"
+                  className="px-3.5 py-2 rounded-xl bg-[#141D30] border border-[#1E293B] text-white hover:border-[#00E676] text-xs font-mono flex items-center space-x-1.5 transition-colors"
                 >
-                  <Calendar className="w-3.5 h-3.5 text-[#A78BFA]" />
+                  <Calendar className="w-3.5 h-3.5 text-[#00E676]" />
                   <span>View Appointments</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentTab('leads'); setLeadTab('quotes'); }}
-                  className="px-3.5 py-2 rounded-xl bg-[#141D30] border border-[#1E293B] text-white hover:border-[#38BDF8] text-xs font-mono flex items-center space-x-1.5 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  <span>View Quotes</span>
                 </button>
               </div>
             </div>
+
+            {/* Form Funnel Conversion Overview Card */}
+            {funnelStats && (
+              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white flex items-center space-x-2">
+                      <TrendingUp className="w-4 h-4 text-[#00E676]" />
+                      <span>Form Conversion Funnel Intelligence</span>
+                    </h3>
+                    <p className="text-xs text-[#9AA3B8] mt-0.5">
+                      Tracks visitor drop-offs and completed submissions without storing unsubmitted personal field data
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentTab('visitors')}
+                    className="text-xs font-mono text-[#00E676] hover:underline flex items-center space-x-1"
+                  >
+                    <span>View Visitor Profiles</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { key: 'appointment', label: 'Consultation Appointments', color: '#A78BFA' },
+                    { key: 'enquiry', label: 'General Project Inquiries', color: '#38BDF8' },
+                    { key: 'quote', label: 'Quotation Estimates', color: '#00E676' },
+                  ].map((f) => {
+                    const data = funnelStats[f.key] || { viewed: 0, started: 0, abandoned: 0, submitted: 0, rate: 0 };
+                    return (
+                      <div key={f.key} className="p-4 rounded-xl bg-[#080B12] border border-[#1E293B] space-y-3">
+                        <div className="flex items-center justify-between text-xs font-mono">
+                          <span className="font-bold text-white">{f.label}</span>
+                          <span className="font-bold text-[#00E676]">{data.rate}% Rate</span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-mono">
+                          <div className="p-1.5 rounded bg-[#0F1624]">
+                            <div className="text-[#9AA3B8]">Viewed</div>
+                            <div className="text-white font-bold mt-0.5">{data.viewed}</div>
+                          </div>
+                          <div className="p-1.5 rounded bg-[#0F1624]">
+                            <div className="text-[#38BDF8]">Started</div>
+                            <div className="text-white font-bold mt-0.5">{data.started}</div>
+                          </div>
+                          <div className="p-1.5 rounded bg-[#0F1624]">
+                            <div className="text-amber-400">Left</div>
+                            <div className="text-white font-bold mt-0.5">{data.abandoned}</div>
+                          </div>
+                          <div className="p-1.5 rounded bg-[#0F1624]">
+                            <div className="text-[#00E676]">Sent</div>
+                            <div className="text-white font-bold mt-0.5">{data.submitted}</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Split Row: Recent Inquiries & Upcoming Appointments */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1245,109 +1622,193 @@ export default function AdminDashboardPage() {
 
             </div>
 
-            {/* Split Row: Recently Updated Projects & Recent Activity Log */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
-              {/* Recently Updated Projects */}
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Layers className="w-4 h-4 text-[#00E676]" />
-                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                      Portfolio Showcase Projects
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => setCurrentTab('projects')}
-                    className="text-xs font-mono text-[#00E676] hover:underline flex items-center space-x-1"
-                  >
-                    <span>Manage</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 2: VISITOR INTELLIGENCE & INDIVIDUAL VISITOR HISTORY */}
+        {/* ========================================================= */}
+        {currentTab === 'visitors' && (
+          <div className="space-y-6">
+            
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-heading font-extrabold text-white flex items-center space-x-2">
+                  <span>Visitor Intelligence &amp; Return Tracking</span>
+                  <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-[#00E676]/10 text-[#00E676] border border-[#00E676]/30">
+                    Anonymous &bull; 1st-Party
+                  </span>
+                </h2>
+                <p className="text-xs text-[#9AA3B8] mt-0.5 font-mono">
+                  Distinguishes anonymous returning browsers without capturing PII or fingerprinting
+                </p>
+              </div>
+
+              <button
+                onClick={fetchVisitors}
+                className="px-3 py-1.5 rounded-xl bg-[#0F1624] border border-[#1E293B] text-white hover:border-[#00E676] text-xs font-mono flex items-center space-x-1.5 self-start sm:self-auto"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Refresh Profiles</span>
+              </button>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex-1 min-w-[220px] relative">
+                  <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search by Visitor ID, device, browser, or visited path..."
+                    value={visitorSearch}
+                    onChange={(e) => setVisitorSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white focus:outline-none focus:border-[#00E676]"
+                  />
                 </div>
 
-                <div className="space-y-2.5">
-                  {projects.slice(0, 3).map((proj) => (
-                    <div 
-                      key={proj.id}
-                      className="p-3.5 rounded-xl bg-[#080B12] border border-[#1E293B] flex items-center justify-between"
+                {/* Date Range */}
+                <div className="flex items-center space-x-1 bg-[#080B12] p-1 rounded-xl border border-[#1E293B]">
+                  {[
+                    { id: 'today', label: 'Today' },
+                    { id: '7d', label: '7D' },
+                    { id: '30d', label: '30D' },
+                    { id: 'all', label: 'All Time' },
+                  ].map((r) => (
+                    <button
+                      key={r.id}
+                      onClick={() => setVisitorRangeFilter(r.id)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
+                        visitorRangeFilter === r.id ? 'bg-[#00E676] text-[#080B12] font-bold' : 'text-[#9AA3B8]'
+                      }`}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#0F1624] flex-shrink-0">
-                          <Image src={proj.image} alt={proj.title} fill className="object-cover" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-white">{proj.title}</div>
-                          <div className="text-xs font-mono text-[#9AA3B8]">{proj.category}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleOpenEditProject(proj)}
-                          className="p-2 rounded-lg bg-[#141D30] text-white hover:text-[#00E676] transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setPreviewProject(proj)}
-                          className="p-2 rounded-lg bg-[#141D30] text-white hover:text-[#38BDF8] transition-colors"
-                          title="Preview"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+                      {r.label}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              {/* Recent Admin Activity Feed */}
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Shield className="w-4 h-4 text-[#38BDF8]" />
-                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                      Recent Admin Activity
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => setCurrentTab('system')}
-                    className="text-xs font-mono text-[#38BDF8] hover:underline flex items-center space-x-1"
-                  >
-                    <span>View Audit</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
+              {/* Secondary Filters */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-[#1E293B]/60 text-xs font-mono">
+                <span className="text-[#9AA3B8]">Filter by:</span>
 
-                {activityLogs.length === 0 ? (
-                  <div className="text-center py-8 text-xs font-mono text-[#64748B]">
-                    No activity recorded yet.
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {activityLogs.slice(0, 4).map((act) => (
-                      <div key={act.id} className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-[#00E676] font-bold">{act.action}</span>
-                          <span className="font-mono text-[10px] text-[#64748B]">
-                            {new Date(act.timestamp).toLocaleTimeString()}
-                          </span>
-                        </div>
-                        <div className="text-[#9AA3B8] mt-1 text-[11px]">{act.description}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Status Filter */}
+                <select
+                  value={visitorStatusFilter}
+                  onChange={(e) => setVisitorStatusFilter(e.target.value)}
+                  className="px-2.5 py-1 rounded-lg bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                >
+                  <option value="all">All Engagement Types</option>
+                  <option value="new">New Visitors</option>
+                  <option value="returning">Returning Visitors</option>
+                  <option value="engaged">Engaged Visitors</option>
+                  <option value="converted">Form Submitted / Converted</option>
+                </select>
+
+                {/* Visit Count Filter */}
+                <select
+                  value={visitorCountFilter}
+                  onChange={(e) => setVisitorCountFilter(e.target.value)}
+                  className="px-2.5 py-1 rounded-lg bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                >
+                  <option value="all">Any Visit Count</option>
+                  <option value="1">1 Visit Only</option>
+                  <option value="2-5">2 to 5 Visits</option>
+                  <option value="6+">6+ Visits</option>
+                </select>
+
+                {/* Form Filter */}
+                <select
+                  value={visitorFormFilter}
+                  onChange={(e) => setVisitorFormFilter(e.target.value)}
+                  className="px-2.5 py-1 rounded-lg bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                >
+                  <option value="all">All Form Activities</option>
+                  <option value="submitted">Form Submitted</option>
+                  <option value="not_submitted">Form Not Submitted</option>
+                  <option value="appointment">Appointment Booked</option>
+                  <option value="quote">Quote Requested</option>
+                  <option value="enquiry">Inquiry Sent</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Visitors Table */}
+            <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
+              <div className="text-xs font-mono text-[#9AA3B8]">
+                Displaying <strong>{visitorsList.length}</strong> tracked browser profiles
               </div>
 
+              {visitorsList.length === 0 ? (
+                <div className="text-center py-12 text-xs font-mono text-[#64748B]">
+                  No visitors match the selected filters.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-[#1E293B] text-[#9AA3B8]">
+                        <th className="pb-3">Visitor ID</th>
+                        <th className="pb-3">Label</th>
+                        <th className="pb-3">Visits</th>
+                        <th className="pb-3">Pageviews</th>
+                        <th className="pb-3">Device / OS</th>
+                        <th className="pb-3">First Seen</th>
+                        <th className="pb-3">Last Seen</th>
+                        <th className="pb-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1E293B]/60">
+                      {visitorsList.map((v) => (
+                        <tr key={v.visitorId} className="hover:bg-[#141D30]">
+                          <td className="py-3 text-white font-bold">
+                            {v.visitorId.substring(0, 18)}...
+                          </td>
+                          <td className="py-3">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                              v.engagementLabel === 'Appointment Booked' ? 'bg-[#A78BFA]/20 text-[#A78BFA] border border-[#A78BFA]/30' :
+                              v.engagementLabel === 'Quote Requested' ? 'bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/30' :
+                              v.engagementLabel === 'Inquiry Submitted' ? 'bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30' :
+                              v.engagementLabel === 'Engaged Visitor' ? 'bg-[#00E676]/15 text-[#00E676]' :
+                              v.engagementLabel === 'Returning Visitor' ? 'bg-[#38BDF8]/15 text-[#38BDF8]' :
+                              'bg-[#1E293B] text-[#9AA3B8]'
+                            }`}>
+                              {v.engagementLabel}
+                            </span>
+                          </td>
+                          <td className="py-3 text-white font-bold">{v.totalVisits}</td>
+                          <td className="py-3 text-white">{v.totalPageViews}</td>
+                          <td className="py-3 text-[#9AA3B8] capitalize">
+                            {v.deviceCategory} &bull; {v.browserCategory}
+                          </td>
+                          <td className="py-3 text-[#64748B]">
+                            {new Date(v.firstSeen).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 text-[#64748B]">
+                            {new Date(v.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="py-3 text-right">
+                            <button
+                              onClick={() => setSelectedVisitorDetail(v)}
+                              className="px-2.5 py-1 rounded-lg bg-[#080B12] border border-[#1E293B] text-[#00E676] hover:bg-[#00E676] hover:text-[#080B12] transition-colors"
+                            >
+                              Timeline &rarr;
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* TAB 2: PROJECTS & DEMOS MANAGEMENT */}
+        {/* TAB 3: PROJECTS & DEMOS MANAGEMENT */}
         {/* ========================================================= */}
         {currentTab === 'projects' && (
           <div className="space-y-6">
@@ -1513,43 +1974,58 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 3: MEDIA MANAGER */}
+        {/* TAB 4: MEDIA MANAGER WITH DRAG & DROP QUEUE AND PROGRESS */}
         {/* ========================================================= */}
         {currentTab === 'media' && (
           <div className="space-y-6">
             
-            {/* Header & Upload Controls */}
+            {/* Header & Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-heading font-extrabold text-white">
-                  Website Media Manager
+                  Media Manager &amp; Upload Engine
                 </h2>
                 <p className="text-xs text-[#9AA3B8] mt-0.5 font-mono">
-                  Upload, inspect, replace, and verify images &amp; videos used across the entire website
+                  Drag &amp; drop multiple images/videos with real progress tracking and cancellation
                 </p>
               </div>
 
               <div className="flex items-center space-x-2">
+                {uploadQueue.some((q) => q.status === 'uploading' || q.status === 'processing' || q.status === 'queued') && (
+                  <button
+                    onClick={cancelAllUploads}
+                    className="px-3 py-1.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-400 text-xs font-mono flex items-center space-x-1.5"
+                  >
+                    <StopCircle className="w-3.5 h-3.5" />
+                    <span>Cancel All</span>
+                  </button>
+                )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingMedia}
-                  className="px-4 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center space-x-2"
+                  className="px-4 py-2 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center space-x-1.5"
                 >
-                  <Upload className="w-4 h-4" />
-                  <span>{isUploadingMedia ? 'Uploading...' : 'Upload Media'}</span>
+                  <Plus className="w-4 h-4" />
+                  <span>Select Files</span>
                 </button>
               </div>
             </div>
 
             {/* Drag & Drop Upload Zone */}
             <div
-              onDragOver={(e) => e.preventDefault()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragOver(true);
+              }}
+              onDragLeave={() => setIsDragOver(false)}
               onDrop={(e) => {
                 e.preventDefault();
-                handleFileUpload(e.dataTransfer.files);
+                setIsDragOver(false);
+                addFilesToUploadQueue(e.dataTransfer.files);
               }}
               onClick={() => fileInputRef.current?.click()}
-              className="p-8 rounded-2xl bg-[#0F1624] border-2 border-dashed border-[#1E293B] hover:border-[#00E676]/60 transition-all text-center cursor-pointer group"
+              className={`p-8 rounded-2xl bg-[#0F1624] border-2 border-dashed transition-all text-center cursor-pointer group ${
+                isDragOver ? 'border-[#00E676] bg-[#00E676]/5 scale-[1.01]' : 'border-[#1E293B] hover:border-[#00E676]/60'
+              }`}
             >
               <div className="w-12 h-12 rounded-2xl bg-[#080B12] border border-[#1E293B] mx-auto flex items-center justify-center text-[#00E676] mb-3 group-hover:scale-110 transition-transform">
                 <Upload className="w-6 h-6" />
@@ -1558,16 +2034,108 @@ export default function AdminDashboardPage() {
                 Drag &amp; Drop Images or Videos Here
               </h3>
               <p className="text-xs font-mono text-[#9AA3B8] mt-1">
-                Supports PNG, JPG, WebP, SVG, MP4, WebM up to 50MB
+                Supports Multi-File Upload: PNG, JPG, WebP, SVG, MP4, WebM up to 60MB
               </p>
-              {uploadProgress && (
-                <div className="mt-3 text-xs font-mono text-[#00E676] animate-pulse">
-                  {uploadProgress}
-                </div>
-              )}
             </div>
 
-            {/* Search and Media Type Filters */}
+            {/* REAL-TIME UPLOAD QUEUE DISPLAY */}
+            {uploadQueue.length > 0 && (
+              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Upload className="w-4 h-4 text-[#00E676]" />
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
+                      Upload Task Queue ({uploadQueue.length})
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setUploadQueue([])}
+                    className="text-xs font-mono text-[#9AA3B8] hover:text-white"
+                  >
+                    Clear Queue
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {uploadQueue.map((item) => (
+                    <div key={item.id} className="p-3.5 rounded-xl bg-[#080B12] border border-[#1E293B] space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center space-x-3 truncate">
+                          {item.previewUrl ? (
+                            <img src={item.previewUrl} alt={item.name} className="w-9 h-9 rounded object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="w-9 h-9 rounded bg-[#141D30] flex items-center justify-center flex-shrink-0">
+                              <Film className="w-4 h-4 text-[#A78BFA]" />
+                            </div>
+                          )}
+                          <div className="truncate">
+                            <div className="text-xs font-bold text-white truncate">{item.name}</div>
+                            <div className="text-[10px] font-mono text-[#64748B]">
+                              {(item.size / (1024 * 1024)).toFixed(2)} MB &bull; {item.type}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Status & Cancel / Retry Controls */}
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                            item.status === 'completed' ? 'bg-[#00E676]/15 text-[#00E676]' :
+                            item.status === 'uploading' ? 'bg-[#38BDF8]/15 text-[#38BDF8] animate-pulse' :
+                            item.status === 'processing' ? 'bg-[#A78BFA]/15 text-[#A78BFA] animate-pulse' :
+                            item.status === 'cancelled' ? 'bg-[#64748B]/20 text-[#9AA3B8]' :
+                            'bg-red-500/15 text-red-400'
+                          }`}>
+                            {item.status.toUpperCase()} {item.status === 'uploading' ? `${item.progress}%` : ''}
+                          </span>
+
+                          {item.status === 'uploading' && (
+                            <button
+                              onClick={() => cancelUpload(item.id)}
+                              title="Abort Upload"
+                              className="p-1 rounded bg-[#141D30] text-red-400 hover:text-red-300"
+                            >
+                              <StopCircle className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {(item.status === 'failed' || item.status === 'cancelled') && (
+                            <button
+                              onClick={() => retryUpload(item)}
+                              title="Retry Upload"
+                              className="p-1 rounded bg-[#141D30] text-[#00E676] hover:bg-[#00E676] hover:text-[#080B12]"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Genuine Real Progress Bar */}
+                      {item.status === 'uploading' && (
+                        <div className="space-y-1">
+                          <div className="w-full h-1.5 rounded-full bg-[#141D30] overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-[#00E676] to-[#38BDF8] transition-all duration-150"
+                              style={{ width: `${item.progress}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-[10px] font-mono text-[#64748B]">
+                            <span>{(item.loadedBytes / (1024 * 1024)).toFixed(2)} MB of {(item.totalBytes / (1024 * 1024)).toFixed(2)} MB</span>
+                            <span>{item.elapsedSeconds}s elapsed</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {item.errorMessage && (
+                        <div className="text-[10px] font-mono text-red-400">{item.errorMessage}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Media Search and Type Filters */}
             <div className="p-4 rounded-2xl bg-[#0F1624] border border-[#1E293B] flex flex-wrap items-center justify-between gap-3">
               <div className="flex-1 min-w-[200px] relative">
                 <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1604,7 +2172,6 @@ export default function AdminDashboardPage() {
                   key={m.id}
                   className="p-3 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#00E676]/50 transition-all flex flex-col justify-between group space-y-2"
                 >
-                  {/* Thumbnail / Video icon */}
                   <div 
                     onClick={() => setSelectedMediaPreview(m)}
                     className="relative h-28 w-full rounded-xl overflow-hidden bg-[#080B12] border border-[#1E293B] flex items-center justify-center cursor-pointer"
@@ -1624,7 +2191,6 @@ export default function AdminDashboardPage() {
                     )}
                   </div>
 
-                  {/* Info */}
                   <div>
                     <div className="text-xs font-bold text-white truncate" title={m.filename}>
                       {m.title || m.filename}
@@ -1635,7 +2201,6 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Quick Action Buttons */}
                   <div className="pt-2 border-t border-[#1E293B] flex items-center justify-between">
                     <button
                       onClick={() => copyToClipboard(m.url)}
@@ -1669,39 +2234,34 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 4: VISITOR ANALYTICS DASHBOARD */}
+        {/* TAB 5: TRAFFIC ANALYTICS */}
         {/* ========================================================= */}
         {currentTab === 'analytics' && (
           <div className="space-y-8">
-            
-            {/* Header & Date Range Selector */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-heading font-extrabold text-white flex items-center space-x-2">
-                  <span>Privacy-Conscious Visitor Analytics</span>
+                  <span>Privacy-Conscious Traffic Analytics</span>
                   <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></span>
                 </h2>
                 <p className="text-xs text-[#9AA3B8] mt-0.5 font-mono">
-                  Anonymous, real-time traffic statistics collected without personal cookie tracking
+                  Real-time events aggregated from privacy-safe beacons
                 </p>
               </div>
 
-              {/* Range Filter Buttons */}
               <div className="flex items-center space-x-1.5 bg-[#0F1624] p-1.5 rounded-xl border border-[#1E293B]">
                 {[
                   { id: 'today', label: 'Today' },
-                  { id: '7d', label: 'Last 7 Days' },
-                  { id: '30d', label: 'Last 30 Days' },
-                  { id: '90d', label: 'Last 90 Days' },
-                  { id: 'all', label: 'All Time' },
+                  { id: '7d', label: '7D' },
+                  { id: '30d', label: '30D' },
+                  { id: '90d', label: '90D' },
+                  { id: 'all', label: 'All' },
                 ].map((r) => (
                   <button
                     key={r.id}
                     onClick={() => setAnalyticsRange(r.id as any)}
                     className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
-                      analyticsRange === r.id
-                        ? 'bg-[#00E676] text-[#080B12] font-bold'
-                        : 'text-[#9AA3B8] hover:text-white'
+                      analyticsRange === r.id ? 'bg-[#00E676] text-[#080B12] font-bold' : 'text-[#9AA3B8]'
                     }`}
                   >
                     {r.label}
@@ -1710,7 +2270,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Analytics Stats Grid */}
+            {/* Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B]">
                 <div className="text-xs font-mono text-[#9AA3B8]">Unique Visitors ({analyticsRange.toUpperCase()})</div>
@@ -1738,9 +2298,7 @@ export default function AdminDashboardPage() {
                   <span>{analyticsStats?.liveVisitorsCount || 1}</span>
                   <span className="w-2 h-2 rounded-full bg-[#00E676] animate-ping"></span>
                 </div>
-                <div className="text-[11px] font-mono text-[#64748B] mt-1">
-                  Heartbeat in last 3 minutes
-                </div>
+                <div className="text-[11px] font-mono text-[#64748B] mt-1">Heartbeat in last 3 minutes</div>
               </div>
 
               <div className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B]">
@@ -1762,104 +2320,40 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Live Visitors Real-Time Table */}
-            {analyticsStats?.liveVisitors && analyticsStats.liveVisitors.length > 0 && (
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#00E676]/30 space-y-4">
-                <div className="flex items-center space-x-2 text-sm font-mono font-bold text-white uppercase">
-                  <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></span>
-                  <span>Currently Active Visitors On Site</span>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead>
-                      <tr className="border-b border-[#1E293B] text-[#9AA3B8]">
-                        <th className="pb-2">Session ID</th>
-                        <th className="pb-2">Current Page</th>
-                        <th className="pb-2">Entry Page</th>
-                        <th className="pb-2">Device</th>
-                        <th className="pb-2">Pageviews</th>
-                        <th className="pb-2">Last Seen</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#1E293B]/60">
-                      {analyticsStats.liveVisitors.map((s: any) => (
-                        <tr key={s.sessionId} className="hover:bg-[#141D30]">
-                          <td className="py-2.5 text-white">{s.sessionId.substring(0, 16)}...</td>
-                          <td className="py-2.5 text-[#00E676] font-bold">{s.currentPath}</td>
-                          <td className="py-2.5 text-[#9AA3B8]">{s.entryPath}</td>
-                          <td className="py-2.5 text-[#38BDF8] capitalize">{s.device}</td>
-                          <td className="py-2.5 text-white">{s.totalPageviews}</td>
-                          <td className="py-2.5 text-[#64748B]">{new Date(s.lastHeartbeat).toLocaleTimeString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Split Breakdown: Top Visited Pages & Top Traffic Sources */}
+            {/* Split Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
-              {/* Top Pages */}
               <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                  Most Visited Pages
-                </h3>
+                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">Most Visited Pages</h3>
                 <div className="space-y-2">
-                  {analyticsStats?.topPages?.length > 0 ? (
-                    analyticsStats.topPages.map((tp: any) => (
-                      <div key={tp.path} className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] text-xs font-mono">
-                        <span className="text-white truncate max-w-xs">{tp.path}</span>
-                        <span className="text-[#00E676] font-bold px-2 py-0.5 rounded bg-[#00E676]/10">
-                          {tp.count} views
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-xs font-mono text-[#64748B] py-4 text-center">
-                      No pageview records yet.
+                  {analyticsStats?.topPages?.map((tp: any) => (
+                    <div key={tp.path} className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] text-xs font-mono">
+                      <span className="text-white truncate max-w-xs">{tp.path}</span>
+                      <span className="text-[#00E676] font-bold px-2 py-0.5 rounded bg-[#00E676]/10">{tp.count} views</span>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
 
-              {/* Traffic Sources / Referrers */}
               <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                  Traffic Sources &amp; Referrers
-                </h3>
+                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">Traffic Sources</h3>
                 <div className="space-y-2">
-                  {analyticsStats?.topReferrers?.length > 0 ? (
-                    analyticsStats.topReferrers.map((tr: any) => (
-                      <div key={tr.source} className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] text-xs font-mono">
-                        <span className="text-white truncate max-w-xs">{tr.source}</span>
-                        <span className="text-[#38BDF8] font-bold px-2 py-0.5 rounded bg-[#38BDF8]/10">
-                          {tr.count} visits
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-xs font-mono text-[#64748B] py-4 text-center">
-                      No referrer records yet.
+                  {analyticsStats?.topReferrers?.map((tr: any) => (
+                    <div key={tr.source} className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] text-xs font-mono">
+                      <span className="text-white truncate max-w-xs">{tr.source}</span>
+                      <span className="text-[#38BDF8] font-bold px-2 py-0.5 rounded bg-[#38BDF8]/10">{tr.count} visits</span>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
-
             </div>
-
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* TAB 5: LEADS & CRM MANAGEMENT */}
+        {/* TAB 6: INQUIRIES & CRM MANAGEMENT */}
         {/* ========================================================= */}
         {currentTab === 'leads' && (
           <div className="space-y-6">
-            
-            {/* Lead Type Sub-Tabs */}
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#1E293B] pb-4">
               <div className="flex space-x-2">
                 {[
@@ -1871,38 +2365,28 @@ export default function AdminDashboardPage() {
                     key={lt.id}
                     onClick={() => setLeadTab(lt.id as any)}
                     className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center space-x-2 transition-all ${
-                      leadTab === lt.id
-                        ? 'bg-[#141D30] text-white font-bold border border-[#1E293B]'
-                        : 'text-[#9AA3B8] hover:text-white'
+                      leadTab === lt.id ? 'bg-[#141D30] text-white font-bold border border-[#1E293B]' : 'text-[#9AA3B8]'
                     }`}
                   >
                     <span>{lt.label}</span>
-                    <span 
-                      className="px-2 py-0.5 rounded-full text-[10px]"
-                      style={{ backgroundColor: `${lt.color}20`, color: lt.color }}
-                    >
+                    <span className="px-2 py-0.5 rounded-full text-[10px]" style={{ backgroundColor: `${lt.color}20`, color: lt.color }}>
                       {lt.count}
                     </span>
                   </button>
                 ))}
               </div>
 
-              {/* View Mode Toggle for Appointments */}
               {leadTab === 'appointments' && (
                 <div className="flex items-center space-x-1 bg-[#0F1624] p-1 rounded-xl border border-[#1E293B]">
                   <button
                     onClick={() => setAppointmentViewMode('list')}
-                    className={`px-3 py-1 rounded-lg text-xs font-mono ${
-                      appointmentViewMode === 'list' ? 'bg-[#A78BFA] text-[#080B12] font-bold' : 'text-[#9AA3B8]'
-                    }`}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono ${appointmentViewMode === 'list' ? 'bg-[#A78BFA] text-[#080B12] font-bold' : 'text-[#9AA3B8]'}`}
                   >
                     List View
                   </button>
                   <button
                     onClick={() => setAppointmentViewMode('calendar')}
-                    className={`px-3 py-1 rounded-lg text-xs font-mono flex items-center space-x-1 ${
-                      appointmentViewMode === 'calendar' ? 'bg-[#A78BFA] text-[#080B12] font-bold' : 'text-[#9AA3B8]'
-                    }`}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono flex items-center space-x-1 ${appointmentViewMode === 'calendar' ? 'bg-[#A78BFA] text-[#080B12] font-bold' : 'text-[#9AA3B8]'}`}
                   >
                     <CalendarDays className="w-3.5 h-3.5" />
                     <span>Calendar</span>
@@ -1911,764 +2395,189 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            {/* Search & Status Filters */}
-            <div className="p-4 rounded-2xl bg-[#0F1624] border border-[#1E293B] flex flex-wrap items-center justify-between gap-3">
-              <div className="flex-1 min-w-[200px] relative">
-                <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search by client name, email, phone, or service..."
-                  value={leadsSearch}
-                  onChange={(e) => setLeadsSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white focus:outline-none focus:border-[#00E676]"
-                />
-              </div>
-
-              <div className="flex items-center space-x-1.5">
-                {['all', 'new', 'scheduled', 'contacted', 'completed', 'cancelled'].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setLeadsStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono capitalize transition-all ${
-                      leadsStatusFilter === st
-                        ? 'bg-[#00E676] text-[#080B12] font-bold'
-                        : 'bg-[#080B12] text-[#9AA3B8] border border-[#1E293B]'
-                    }`}
-                  >
-                    {st}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 1. Appointments Tab Content */}
+            {/* List / Calendar content */}
             {leadTab === 'appointments' && (
-              <>
-                {appointmentViewMode === 'calendar' ? (
-                  /* Calendar Grouped View */
-                  <div className="space-y-6">
-                    {appointmentsByDate.map(([date, appts]) => (
-                      <div key={date} className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-3">
-                        <div className="flex items-center space-x-2 text-sm font-mono font-bold text-[#A78BFA]">
-                          <Calendar className="w-4 h-4" />
-                          <span>{date}</span>
-                          <span className="text-xs text-[#9AA3B8]">({appts.length} session(s))</span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {appts.map((a) => (
-                            <div 
-                              key={a.id}
-                              onClick={() => setSelectedLead(a)}
-                              className="p-4 rounded-xl bg-[#080B12] border border-[#1E293B] hover:border-[#A78BFA] transition-all cursor-pointer space-y-2"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-white text-sm">{a.fullName}</span>
-                                <span className="text-xs font-mono text-[#00E676]">{a.preferredTime}</span>
-                              </div>
-                              <div className="text-xs text-[#9AA3B8]">{a.serviceRequired}</div>
-                              <div className="flex items-center justify-between pt-2 border-t border-[#1E293B] text-[10px] font-mono">
-                                <span className="text-[#38BDF8]">{a.phone}</span>
-                                <span className="uppercase text-[#A78BFA]">{a.status}</span>
-                              </div>
+              appointmentViewMode === 'calendar' ? (
+                <div className="space-y-6">
+                  {appointmentsByDate.map(([date, appts]) => (
+                    <div key={date} className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-3">
+                      <div className="flex items-center space-x-2 text-sm font-mono font-bold text-[#A78BFA]">
+                        <Calendar className="w-4 h-4" />
+                        <span>{date}</span>
+                        <span className="text-xs text-[#9AA3B8]">({appts.length} session(s))</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {appts.map((a) => (
+                          <div 
+                            key={a.id}
+                            onClick={() => setSelectedLead(a)}
+                            className="p-4 rounded-xl bg-[#080B12] border border-[#1E293B] hover:border-[#A78BFA] transition-all cursor-pointer space-y-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-white text-sm">{a.fullName}</span>
+                              <span className="text-xs font-mono text-[#00E676]">{a.preferredTime}</span>
                             </div>
-                          ))}
-                        </div>
+                            <div className="text-xs text-[#9AA3B8]">{a.serviceRequired}</div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  /* List View */
-                  <div className="space-y-3">
-                    {filteredAppointments.map((apt) => (
-                      <div 
-                        key={apt.id}
-                        className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#A78BFA]/50 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-bold text-white text-sm">{apt.fullName}</span>
-                            {apt.companyName && (
-                              <span className="text-xs font-mono text-[#9AA3B8]">({apt.companyName})</span>
-                            )}
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
-                              apt.status === 'scheduled' ? 'bg-[#00E676]/15 text-[#00E676]' : 'bg-[#1E293B] text-[#9AA3B8]'
-                            }`}>
-                              {apt.status.toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="text-xs text-[#9AA3B8]">
-                            Date: <strong className="text-white">{apt.preferredDate}</strong> at <strong className="text-white">{apt.preferredTime}</strong> &bull; {apt.serviceRequired}
-                          </div>
-                          <div className="text-xs text-[#64748B] line-clamp-1">
-                            {apt.projectDescription}
-                          </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredAppointments.map((apt) => (
+                    <div key={apt.id} className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#A78BFA]/50 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-white text-sm">{apt.fullName}</span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1E293B] text-[#9AA3B8] uppercase">{apt.status}</span>
                         </div>
-
-                        {/* Contact & Status Controls */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <a
-                            href={`https://wa.me/${apt.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(apt.fullName)}%2C%20regarding%20your%20HackifyPro%20appointment...`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1.5 rounded-lg bg-[#00E676]/15 border border-[#00E676]/40 text-[#00E676] text-xs font-mono font-bold flex items-center space-x-1"
-                          >
-                            <Phone className="w-3 h-3" />
-                            <span>WhatsApp</span>
-                          </a>
-
-                          <a
-                            href={`mailto:${apt.email}?subject=Regarding%20Your%20HackifyPro%20Appointment`}
-                            className="px-3 py-1.5 rounded-lg bg-[#141D30] border border-[#1E293B] text-white text-xs font-mono flex items-center space-x-1"
-                          >
-                            <Mail className="w-3 h-3" />
-                            <span>Email</span>
-                          </a>
-
-                          <button
-                            onClick={() => setSelectedLead(apt)}
-                            className="px-3 py-1.5 rounded-lg bg-[#080B12] border border-[#1E293B] text-[#A78BFA] text-xs font-mono hover:border-[#A78BFA]"
-                          >
-                            Manage
-                          </button>
-                        </div>
+                        <div className="text-xs text-[#9AA3B8]">Date: <strong className="text-white">{apt.preferredDate}</strong> at <strong className="text-white">{apt.preferredTime}</strong> &bull; {apt.serviceRequired}</div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </>
+                      <div className="flex items-center space-x-2">
+                        <a href={`https://wa.me/${apt.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg bg-[#00E676]/15 text-[#00E676] text-xs font-mono font-bold">WhatsApp</a>
+                        <button onClick={() => setSelectedLead(apt)} className="px-3 py-1.5 rounded-lg bg-[#080B12] border border-[#1E293B] text-[#A78BFA] text-xs font-mono">Manage</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
 
-            {/* 2. Enquiries Tab Content */}
             {leadTab === 'enquiries' && (
               <div className="space-y-3">
                 {filteredEnquiries.map((enq) => (
-                  <div 
-                    key={enq.id}
-                    className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#38BDF8]/50 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-bold text-white text-sm">{enq.name}</span>
-                        <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#141D30] text-[#38BDF8]">
-                          {enq.interestedService}
-                        </span>
-                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
-                          enq.status === 'new' ? 'bg-[#00E676]/15 text-[#00E676]' : 'bg-[#1E293B] text-[#9AA3B8]'
-                        }`}>
-                          {enq.status.toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="text-xs text-[#9AA3B8]">
-                        Email: {enq.email} &bull; Phone: {enq.phone}
-                      </div>
-                      <div className="text-xs text-[#E8EDF5] bg-[#080B12] p-2 rounded-lg border border-[#1E293B]/70 mt-1">
-                        {enq.message}
-                      </div>
+                  <div key={enq.id} className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                      <div className="font-bold text-white text-sm">{enq.name} ({enq.interestedService})</div>
+                      <div className="text-xs text-[#9AA3B8] mt-1">{enq.message}</div>
                     </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <a
-                        href={`https://wa.me/${enq.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(enq.name)}%2C%20thank%20you%20for%20contacting%20HackifyPro!`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-[#00E676]/15 border border-[#00E676]/40 text-[#00E676] text-xs font-mono font-bold flex items-center space-x-1"
-                      >
-                        <Phone className="w-3 h-3" />
-                        <span>WhatsApp</span>
-                      </a>
-                      <button
-                        onClick={() => setSelectedLead(enq)}
-                        className="px-3 py-1.5 rounded-lg bg-[#080B12] border border-[#1E293B] text-[#38BDF8] text-xs font-mono hover:border-[#38BDF8]"
-                      >
-                        Details &amp; Notes
-                      </button>
-                    </div>
+                    <button onClick={() => setSelectedLead(enq)} className="px-3 py-1.5 rounded-lg bg-[#080B12] border border-[#1E293B] text-[#38BDF8] text-xs font-mono">Details</button>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* 3. Quotes Tab Content */}
             {leadTab === 'quotes' && (
               <div className="space-y-3">
                 {filteredQuotes.map((q) => (
-                  <div 
-                    key={q.id}
-                    className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] hover:border-[#00E676]/50 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-bold text-white text-sm">{q.name}</span>
-                        <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#141D30] text-[#00E676]">
-                          Budget: {q.estimatedBudget}
-                        </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1E293B] text-[#9AA3B8]">
-                          {q.status.toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="text-xs text-[#9AA3B8]">
-                        Service: {q.requiredService} &bull; Timeline: {q.expectedTimeline}
-                      </div>
-                      <div className="text-xs text-[#E8EDF5] bg-[#080B12] p-2 rounded-lg border border-[#1E293B]/70 mt-1">
-                        Scope: {q.projectScope}
-                      </div>
+                  <div key={q.id} className="p-5 rounded-2xl bg-[#0F1624] border border-[#1E293B] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                      <div className="font-bold text-white text-sm">{q.name} &bull; Budget: {q.estimatedBudget}</div>
+                      <div className="text-xs text-[#9AA3B8] mt-1">Scope: {q.projectScope}</div>
                     </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <a
-                        href={`https://wa.me/${q.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(q.name)}%2C%20regarding%20your%20HackifyPro%20project%20quotation...`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-[#00E676]/15 border border-[#00E676]/40 text-[#00E676] text-xs font-mono font-bold flex items-center space-x-1"
-                      >
-                        <Phone className="w-3 h-3" />
-                        <span>WhatsApp</span>
-                      </a>
-                      <button
-                        onClick={() => setSelectedLead(q)}
-                        className="px-3 py-1.5 rounded-lg bg-[#080B12] border border-[#1E293B] text-[#00E676] text-xs font-mono hover:border-[#00E676]"
-                      >
-                        View Quote
-                      </button>
-                    </div>
+                    <button onClick={() => setSelectedLead(q)} className="px-3 py-1.5 rounded-lg bg-[#080B12] border border-[#1E293B] text-[#00E676] text-xs font-mono">View Quote</button>
                   </div>
                 ))}
               </div>
             )}
-
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* TAB 6: WEBSITE CONTENT & LINKS MANAGEMENT */}
+        {/* TAB 7: CONTENT & LINKS */}
         {/* ========================================================= */}
         {currentTab === 'content' && siteContent && (
           <div className="space-y-6">
-            
-            {/* Header & Save Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-heading font-extrabold text-white">
-                  Dynamic Website Content &amp; Links Control
-                </h2>
-                <p className="text-xs text-[#9AA3B8] mt-0.5 font-mono">
-                  Modify social links, founder biography, services, and hero text without touching code
-                </p>
+                <h2 className="text-xl font-heading font-extrabold text-white">Dynamic Content &amp; Links</h2>
+                <p className="text-xs text-[#9AA3B8] font-mono">Manage links, founder biography, services, and hero text</p>
               </div>
-
-              <div className="flex items-center space-x-3">
-                {contentSaveMsg && (
-                  <span className="text-xs font-mono text-[#00E676] flex items-center space-x-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{contentSaveMsg}</span>
-                  </span>
-                )}
-                <button
-                  onClick={handleSaveSiteContent}
-                  disabled={contentSaving}
-                  className="px-5 py-2 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center space-x-1.5 disabled:opacity-50"
-                >
-                  {contentSaving ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Save Live Changes</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={handleSaveSiteContent}
+                disabled={contentSaving}
+                className="px-5 py-2 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider"
+              >
+                {contentSaving ? 'Saving...' : 'Save Live Changes'}
+              </button>
             </div>
 
-            {/* Subtabs Navigation */}
-            <div className="flex space-x-2 border-b border-[#1E293B] pb-3">
-              {[
-                { id: 'links', label: 'Website Links' },
-                { id: 'founder', label: 'Founder Profile' },
-                { id: 'services', label: 'Services' },
-                { id: 'hero', label: 'Hero & CTA' },
-                { id: 'sections', label: 'Section Toggles' },
-              ].map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => setContentSubTab(sub.id as any)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    contentSubTab === sub.id
-                      ? 'bg-[#00E676] text-[#080B12] font-bold'
-                      : 'bg-[#0F1624] text-[#9AA3B8] hover:text-white'
-                  }`}
-                >
-                  {sub.label}
-                </button>
-              ))}
+            <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
+              <h3 className="text-sm font-mono font-bold uppercase text-white">Managed External URLs</h3>
+              <div className="space-y-3">
+                {(siteContent.links || []).map((lnk: any, idx: number) => (
+                  <div key={lnk.id} className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B] grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                    <input
+                      type="text"
+                      value={lnk.label}
+                      onChange={(e) => {
+                        const newLinks = [...siteContent.links];
+                        newLinks[idx].label = e.target.value;
+                        setSiteContent({ ...siteContent, links: newLinks });
+                      }}
+                      className="md:col-span-4 px-3 py-1.5 rounded bg-[#0F1624] text-xs text-white border border-[#1E293B]"
+                    />
+                    <input
+                      type="text"
+                      value={lnk.url}
+                      onChange={(e) => {
+                        const newLinks = [...siteContent.links];
+                        newLinks[idx].url = e.target.value;
+                        setSiteContent({ ...siteContent, links: newLinks });
+                      }}
+                      className="md:col-span-8 px-3 py-1.5 rounded bg-[#0F1624] text-xs text-white border border-[#1E293B]"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {/* Subtab 1: Links */}
-            {contentSubTab === 'links' && (
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                    Centralized External &amp; Social Links
-                  </h3>
-                  <button
-                    onClick={() => {
-                      const newLink = {
-                        id: `lnk-custom-${Date.now()}`,
-                        key: 'customLink',
-                        label: 'New Link',
-                        url: 'https://',
-                        category: 'external',
-                        enabled: true,
-                        openInNewTab: true,
-                        order: (siteContent.links || []).length + 1,
-                      };
-                      setSiteContent({
-                        ...siteContent,
-                        links: [...(siteContent.links || []), newLink],
-                      });
-                    }}
-                    className="px-3 py-1 rounded-lg bg-[#141D30] border border-[#1E293B] text-xs font-mono text-[#00E676] hover:bg-[#00E676] hover:text-[#080B12] transition-all flex items-center space-x-1"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>Add Custom Link</span>
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {(siteContent.links || []).map((lnk: any, idx: number) => (
-                    <div key={lnk.id} className="p-4 rounded-xl bg-[#080B12] border border-[#1E293B] grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-                      <div className="md:col-span-3">
-                        <label className="text-[10px] font-mono text-[#64748B] block">Label</label>
-                        <input
-                          type="text"
-                          value={lnk.label}
-                          onChange={(e) => {
-                            const newLinks = [...siteContent.links];
-                            newLinks[idx].label = e.target.value;
-                            setSiteContent({ ...siteContent, links: newLinks });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                        />
-                      </div>
-
-                      <div className="md:col-span-5">
-                        <label className="text-[10px] font-mono text-[#64748B] block">URL Destination</label>
-                        <input
-                          type="text"
-                          value={lnk.url}
-                          onChange={(e) => {
-                            const newLinks = [...siteContent.links];
-                            newLinks[idx].url = e.target.value;
-                            setSiteContent({ ...siteContent, links: newLinks });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className="text-[10px] font-mono text-[#64748B] block">Category</label>
-                        <select
-                          value={lnk.category}
-                          onChange={(e) => {
-                            const newLinks = [...siteContent.links];
-                            newLinks[idx].category = e.target.value;
-                            setSiteContent({ ...siteContent, links: newLinks });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                        >
-                          <option value="social">Social</option>
-                          <option value="contact">Contact</option>
-                          <option value="cta">CTA</option>
-                          <option value="external">External</option>
-                        </select>
-                      </div>
-
-                      <div className="md:col-span-2 flex items-center justify-end space-x-3 pt-2 md:pt-0">
-                        <label className="flex items-center space-x-1.5 text-xs font-mono text-white cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={lnk.enabled}
-                            onChange={(e) => {
-                              const newLinks = [...siteContent.links];
-                              newLinks[idx].enabled = e.target.checked;
-                              setSiteContent({ ...siteContent, links: newLinks });
-                            }}
-                            className="rounded accent-[#00E676]"
-                          />
-                          <span>Active</span>
-                        </label>
-
-                        <button
-                          onClick={() => {
-                            const newLinks = siteContent.links.filter((_: any, i: number) => i !== idx);
-                            setSiteContent({ ...siteContent, links: newLinks });
-                          }}
-                          className="p-1 rounded text-red-400 hover:text-red-300"
-                          title="Remove Link"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Subtab 2: Founder Profile */}
-            {contentSubTab === 'founder' && siteContent.founder && (
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                  Founder Profile &amp; Biography Settings
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Full Name</label>
-                    <input
-                      type="text"
-                      value={siteContent.founder.name}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        founder: { ...siteContent.founder, name: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Professional Title</label>
-                    <input
-                      type="text"
-                      value={siteContent.founder.role}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        founder: { ...siteContent.founder, role: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Profile Image URL</label>
-                    <input
-                      type="text"
-                      value={siteContent.founder.image}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        founder: { ...siteContent.founder, image: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Location</label>
-                    <input
-                      type="text"
-                      value={siteContent.founder.location}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        founder: { ...siteContent.founder, location: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Tagline</label>
-                  <input
-                    type="text"
-                    value={siteContent.founder.tagline}
-                    onChange={(e) => setSiteContent({
-                      ...siteContent,
-                      founder: { ...siteContent.founder, tagline: e.target.value }
-                    })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Biography / About Founder</label>
-                  <textarea
-                    rows={4}
-                    value={siteContent.founder.bio}
-                    onChange={(e) => setSiteContent({
-                      ...siteContent,
-                      founder: { ...siteContent.founder, bio: e.target.value }
-                    })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Subtab 3: Services */}
-            {contentSubTab === 'services' && (
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                    Dynamic Services Manager
-                  </h3>
-                </div>
-
-                <div className="space-y-3">
-                  {(siteContent.services || []).map((srv: any, idx: number) => (
-                    <div key={srv.id} className="p-4 rounded-xl bg-[#080B12] border border-[#1E293B] flex items-center justify-between gap-4">
-                      <div>
-                        <div className="font-bold text-white text-sm flex items-center space-x-2">
-                          <span>{srv.title}</span>
-                          <span className="text-[10px] font-mono text-[#38BDF8]">/{srv.slug}</span>
-                        </div>
-                        <div className="text-xs text-[#9AA3B8] mt-1 line-clamp-1">{srv.shortDesc}</div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <label className="flex items-center space-x-1.5 text-xs font-mono text-white cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={srv.visibility !== false}
-                            onChange={(e) => {
-                              const newServices = [...siteContent.services];
-                              newServices[idx].visibility = e.target.checked;
-                              setSiteContent({ ...siteContent, services: newServices });
-                            }}
-                            className="rounded accent-[#00E676]"
-                          />
-                          <span>Visible</span>
-                        </label>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Subtab 4: Hero & CTA */}
-            {contentSubTab === 'hero' && siteContent.homepage && (
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                  Homepage Hero &amp; Call-To-Action Content
-                </h3>
-
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Badge Text</label>
-                  <input
-                    type="text"
-                    value={siteContent.homepage.badge}
-                    onChange={(e) => setSiteContent({
-                      ...siteContent,
-                      homepage: { ...siteContent.homepage, badge: e.target.value }
-                    })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Heading Line 1</label>
-                    <input
-                      type="text"
-                      value={siteContent.homepage.headingLine1}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        homepage: { ...siteContent.homepage, headingLine1: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Heading Gradient Text</label>
-                    <input
-                      type="text"
-                      value={siteContent.homepage.headingGradient}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        homepage: { ...siteContent.homepage, headingGradient: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Hero Description</label>
-                  <textarea
-                    rows={3}
-                    value={siteContent.homepage.description}
-                    onChange={(e) => setSiteContent({
-                      ...siteContent,
-                      homepage: { ...siteContent.homepage, description: e.target.value }
-                    })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Primary CTA Button Text</label>
-                    <input
-                      type="text"
-                      value={siteContent.homepage.ctaText}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        homepage: { ...siteContent.homepage, ctaText: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Primary CTA URL</label>
-                    <input
-                      type="text"
-                      value={siteContent.homepage.ctaUrl}
-                      onChange={(e) => setSiteContent({
-                        ...siteContent,
-                        homepage: { ...siteContent.homepage, ctaUrl: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-sm text-white"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Subtab 5: Section Toggles */}
-            {contentSubTab === 'sections' && siteContent.sectionsVisibility && (
-              <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                  Homepage Section Visibility Toggles
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {Object.entries(siteContent.sectionsVisibility).map(([key, val]: any) => (
-                    <label key={key} className="p-4 rounded-xl bg-[#080B12] border border-[#1E293B] flex items-center justify-between cursor-pointer">
-                      <span className="text-xs font-mono text-white capitalize">{key} Section</span>
-                      <input
-                        type="checkbox"
-                        checked={val}
-                        onChange={(e) => setSiteContent({
-                          ...siteContent,
-                          sectionsVisibility: {
-                            ...siteContent.sectionsVisibility,
-                            [key]: e.target.checked
-                          }
-                        })}
-                        className="rounded accent-[#00E676] w-4 h-4"
-                      />
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* TAB 7: AUDIT ACTIVITY LOGS & SECURITY SETTINGS */}
+        {/* TAB 8: AUDIT & SECURITY */}
         {/* ========================================================= */}
         {currentTab === 'system' && (
           <div className="space-y-8">
-            
-            {/* Header */}
             <div>
-              <h2 className="text-xl font-heading font-extrabold text-white">
-                Security &amp; Admin Audit Trail
-              </h2>
-              <p className="text-xs text-[#9AA3B8] mt-0.5 font-mono">
-                Immutable activity logs, server-side authentication state, and SMTP diagnostics
-              </p>
+              <h2 className="text-xl font-heading font-extrabold text-white">Security &amp; Audit Logs</h2>
+              <p className="text-xs text-[#9AA3B8] font-mono">Authentication events, progressive cooldowns, and server audit trail</p>
             </div>
 
-            {/* Diagnostics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* Test Email Dispatcher */}
               <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 text-white">
                   <Mail className="w-4 h-4 text-[#00E676]" />
-                  <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                    SMTP Email Diagnostics
-                  </h3>
+                  <h3 className="text-sm font-mono font-bold uppercase">SMTP Email Diagnostics</h3>
                 </div>
-                <p className="text-xs text-[#9AA3B8]">
-                  Send a live diagnostic test message through the configured Gmail SMTP server.
-                </p>
-
                 <div className="flex space-x-2">
                   <input
                     type="email"
                     value={emailTestAddress}
                     onChange={(e) => setEmailTestAddress(e.target.value)}
-                    placeholder="recipient@example.com"
                     className="flex-1 px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
                   />
                   <button
                     onClick={handleTestEmail}
                     disabled={emailTesting}
-                    className="px-4 py-2 rounded-xl bg-[#00E676] text-[#080B12] text-xs font-mono font-bold uppercase flex items-center space-x-1.5 disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl bg-[#00E676] text-[#080B12] text-xs font-mono font-bold"
                   >
-                    {emailTesting ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Sending...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Send Test</span>
-                      </>
-                    )}
+                    {emailTesting ? 'Sending...' : 'Test SMTP'}
                   </button>
                 </div>
-
-                {emailTestResult && (
-                  <div className={`p-3 rounded-xl text-xs font-mono flex items-center space-x-2 ${
-                    emailTestResult.success ? 'bg-[#00E676]/10 text-[#00E676] border border-[#00E676]/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'
-                  }`}>
-                    {emailTestResult.success ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                    <span>{emailTestResult.message}</span>
-                  </div>
-                )}
               </div>
 
-              {/* Cloud Firestore Status */}
               <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 text-white">
                   <Shield className="w-4 h-4 text-[#38BDF8]" />
-                  <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                    Cloud Firestore Dual-Write Sync
-                  </h3>
+                  <h3 className="text-sm font-mono font-bold uppercase">Authentication &amp; Cooldown</h3>
                 </div>
                 <p className="text-xs text-[#9AA3B8]">
-                  All new appointments, inquiries, and projects automatically replicate to Google Cloud Firestore (<code className="text-[#00E676]">self-driving-car-rental-9f35f</code>).
+                  Bcrypt hashing with 12 salt rounds active. Progressive cooldown triggers on 4+ failed attempts.
                 </p>
-
-                <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs font-mono text-[#00E676] flex items-center justify-between">
-                  <span className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></span>
-                    <span>Firestore Real-Time Mirror Active</span>
-                  </span>
-                  <span className="text-[#9AA3B8]">100% Synced</span>
+                <div className="text-xs font-mono text-[#00E676]">
+                  Active Session Role: <strong className="uppercase">{currentUser?.role || 'Owner'}</strong>
                 </div>
               </div>
-
             </div>
 
             {/* Audit Logs Table */}
             <div className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                  Activity Audit Trail ({activityLogs.length} Events)
-                </h3>
-                <button
-                  onClick={fetchActivityLogs}
-                  className="p-1.5 rounded-lg bg-[#080B12] text-[#9AA3B8] hover:text-white"
-                >
+                <h3 className="text-sm font-mono font-bold uppercase text-white">Audit Trail ({activityLogs.length} Events)</h3>
+                <button onClick={fetchActivityLogs} className="p-1.5 rounded-lg bg-[#080B12] text-[#9AA3B8] hover:text-white">
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -2677,42 +2586,183 @@ export default function AdminDashboardPage() {
                 <table className="w-full text-left text-xs font-mono">
                   <thead>
                     <tr className="border-b border-[#1E293B] text-[#9AA3B8]">
-                      <th className="pb-2">Timestamp</th>
+                      <th className="pb-2">Time</th>
                       <th className="pb-2">Action</th>
-                      <th className="pb-2">Target</th>
                       <th className="pb-2">Description</th>
                       <th className="pb-2">Admin</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#1E293B]/60">
-                    {activityLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-[#141D30]">
-                        <td className="py-2.5 text-[#64748B] whitespace-nowrap">
-                          {new Date(log.timestamp).toLocaleString()}
-                        </td>
-                        <td className="py-2.5 text-[#00E676] font-bold">{log.action}</td>
-                        <td className="py-2.5 text-[#38BDF8] uppercase">{log.targetType}</td>
-                        <td className="py-2.5 text-white max-w-md truncate">{log.description}</td>
-                        <td className="py-2.5 text-[#9AA3B8]">{log.adminEmail}</td>
+                    {activityLogs.map((l) => (
+                      <tr key={l.id} className="hover:bg-[#141D30]">
+                        <td className="py-2.5 text-[#64748B] whitespace-nowrap">{new Date(l.timestamp).toLocaleTimeString()}</td>
+                        <td className="py-2.5 text-[#00E676] font-bold">{l.action}</td>
+                        <td className="py-2.5 text-white max-w-md truncate">{l.description}</td>
+                        <td className="py-2.5 text-[#9AA3B8]">{l.adminEmail}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             </div>
-
           </div>
         )}
 
       </main>
 
       {/* ========================================================= */}
-      {/* MODAL 1: ADD / EDIT PROJECT MODAL */}
+      {/* MODAL 1: INDIVIDUAL VISITOR DETAIL & TIMELINE MODAL */}
+      {/* ========================================================= */}
+      {selectedVisitorDetail && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#0F1624] border border-[#1E293B] rounded-3xl w-full max-w-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6">
+            
+            <div className="flex items-center justify-between border-b border-[#1E293B] pb-4">
+              <div>
+                <span className="text-xs font-mono text-[#00E676] uppercase">Visitor Intelligence Profile</span>
+                <h3 className="text-xl font-heading font-extrabold text-white">
+                  {selectedVisitorDetail.visitorId}
+                </h3>
+              </div>
+              <button onClick={() => setSelectedVisitorDetail(null)} className="p-2 rounded-xl bg-[#080B12] text-[#9AA3B8] hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+              <div className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B]">
+                <div className="text-[#9AA3B8]">Status Label</div>
+                <div className="text-[#00E676] font-bold mt-1">{selectedVisitorDetail.engagementLabel}</div>
+              </div>
+              <div className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B]">
+                <div className="text-[#9AA3B8]">Total Visits</div>
+                <div className="text-white font-bold mt-1">{selectedVisitorDetail.totalVisits} Session(s)</div>
+              </div>
+              <div className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B]">
+                <div className="text-[#9AA3B8]">Total Pageviews</div>
+                <div className="text-white font-bold mt-1">{selectedVisitorDetail.totalPageViews} Views</div>
+              </div>
+              <div className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B]">
+                <div className="text-[#9AA3B8]">Device / OS</div>
+                <div className="text-[#38BDF8] font-bold mt-1 capitalize">{selectedVisitorDetail.deviceCategory} ({selectedVisitorDetail.browserCategory})</div>
+              </div>
+            </div>
+
+            {/* Visit Timeline */}
+            <div className="p-5 rounded-2xl bg-[#080B12] border border-[#1E293B] space-y-4">
+              <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white flex items-center space-x-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#A78BFA]" />
+                <span>Session &amp; Visit Timeline ({selectedVisitorDetail.sessions.length} recorded)</span>
+              </h4>
+
+              <div className="space-y-3">
+                {selectedVisitorDetail.sessions.map((sess, sIdx) => (
+                  <div key={sess.sessionId} className="p-3.5 rounded-xl bg-[#0F1624] border border-[#1E293B] space-y-2 text-xs font-mono">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#A78BFA] font-bold">Session #{selectedVisitorDetail.sessions.length - sIdx}</span>
+                      <span className="text-[#64748B]">{new Date(sess.startedAt).toLocaleString()}</span>
+                    </div>
+                    <div className="text-[#9AA3B8]">
+                      Duration: <strong className="text-white">{sess.durationSeconds}s</strong> &bull; Pageviews: <strong className="text-white">{sess.pageviews}</strong>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {sess.pages.map((p) => (
+                        <span key={p} className="text-[10px] px-2 py-0.5 rounded bg-[#080B12] text-[#38BDF8] border border-[#1E293B]">
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Clicks & Interactions */}
+            {selectedVisitorDetail.interactions.length > 0 && (
+              <div className="p-5 rounded-2xl bg-[#080B12] border border-[#1E293B] space-y-3">
+                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                  Clicks &amp; Interactions ({selectedVisitorDetail.interactions.length})
+                </h4>
+                <div className="space-y-1.5 text-xs font-mono">
+                  {selectedVisitorDetail.interactions.map((i) => (
+                    <div key={i.id} className="flex items-center justify-between p-2 rounded-lg bg-[#0F1624]">
+                      <span className="text-[#00E676]">{i.type.replace('_', ' ').toUpperCase()} on {i.page}</span>
+                      <span className="text-[#64748B]">{new Date(i.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Conversions */}
+            {selectedVisitorDetail.conversions.length > 0 && (
+              <div className="p-5 rounded-2xl bg-[#080B12] border border-[#00E676]/40 space-y-3">
+                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-[#00E676]">
+                  Verified Lead Conversions ({selectedVisitorDetail.conversions.length})
+                </h4>
+                <div className="space-y-2 text-xs font-mono">
+                  {selectedVisitorDetail.conversions.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-[#0F1624] border border-[#1E293B]">
+                      <div>
+                        <span className="font-bold text-white capitalize">{c.formType} Form</span>
+                        <div className="text-[11px] text-[#38BDF8]">Lead Reference: {c.leadId}</div>
+                      </div>
+                      <span className="text-[#64748B]">{new Date(c.timestamp).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-3 border-t border-[#1E293B]">
+              <button
+                onClick={() => setSelectedVisitorDetail(null)}
+                className="px-5 py-2 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold"
+              >
+                Close Profile
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 2: PERMISSION RESTRICTED MODAL */}
+      {/* ========================================================= */}
+      {permissionDeniedModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0F1624] border border-amber-500/40 rounded-3xl w-full max-w-md p-6 sm:p-8 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Access Restricted</h3>
+            <p className="text-xs text-[#9AA3B8]">{permissionDeniedModal.reason}</p>
+            
+            <div className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs font-mono space-y-1 text-left">
+              <div>Current Role: <strong className="text-white">{permissionDeniedModal.currentRole}</strong></div>
+              <div>Required Role: <strong className="text-[#00E676]">{permissionDeniedModal.requiredRole}</strong></div>
+            </div>
+
+            <div className="flex justify-center space-x-3 pt-2">
+              <button
+                onClick={() => setPermissionDeniedModal(null)}
+                className="px-5 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold"
+              >
+                Understood
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 3: ADD / EDIT PROJECT MODAL */}
       {/* ========================================================= */}
       {projectModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[#0F1624] border border-[#1E293B] rounded-3xl w-full max-w-4xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6">
-            
             <div className="flex items-center justify-between border-b border-[#1E293B] pb-4">
               <div>
                 <h3 className="text-xl font-heading font-extrabold text-white">
@@ -2740,8 +2790,6 @@ export default function AdminDashboardPage() {
             )}
 
             <form onSubmit={handleSaveProject} className="space-y-6">
-              
-              {/* Row 1: Title, Category, Project Type */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Project Title *</label>
@@ -2750,7 +2798,6 @@ export default function AdminDashboardPage() {
                     required
                     value={projectForm.title}
                     onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-                    placeholder="e.g. HackifyPro HMS"
                     className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
                   />
                 </div>
@@ -2761,7 +2808,6 @@ export default function AdminDashboardPage() {
                     required
                     value={projectForm.category}
                     onChange={(e) => setProjectForm({ ...projectForm, category: e.target.value })}
-                    placeholder="HealthTech, CRM, Mobile App"
                     className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
                   />
                 </div>
@@ -2771,301 +2817,33 @@ export default function AdminDashboardPage() {
                     type="text"
                     value={projectForm.projectType}
                     onChange={(e) => setProjectForm({ ...projectForm, projectType: e.target.value })}
-                    placeholder="Web App, Android App, SaaS"
                     className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
                   />
                 </div>
               </div>
 
-              {/* Row 2: Client, Market, Completion Date, Visibility */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Client</label>
-                  <input
-                    type="text"
-                    value={projectForm.client}
-                    onChange={(e) => setProjectForm({ ...projectForm, client: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Target Market</label>
-                  <input
-                    type="text"
-                    value={projectForm.market}
-                    onChange={(e) => setProjectForm({ ...projectForm, market: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Completion Date</label>
-                  <input
-                    type="date"
-                    value={projectForm.completionDate}
-                    onChange={(e) => setProjectForm({ ...projectForm, completionDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Visibility</label>
-                  <select
-                    value={projectForm.visibility}
-                    onChange={(e) => setProjectForm({ ...projectForm, visibility: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  >
-                    <option value="published">Published</option>
-                    <option value="draft">Draft (Hidden)</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Row 3: Cover Image URL & Featured */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                <div className="md:col-span-9">
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Main Cover Image URL *</label>
-                  <input
-                    type="text"
-                    required
-                    value={projectForm.image}
-                    onChange={(e) => setProjectForm({ ...projectForm, image: e.target.value })}
-                    placeholder="/assets/hackifypro-workspace.png or upload in Media Manager"
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-                <div className="md:col-span-3 pt-5">
-                  <label className="flex items-center space-x-2 text-xs font-mono text-white cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={projectForm.featured}
-                      onChange={(e) => setProjectForm({ ...projectForm, featured: e.target.checked })}
-                      className="rounded accent-[#00E676] w-4 h-4"
-                    />
-                    <span>Feature on Homepage</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Row 4: URLs (Live Demo, GitHub) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Live Demo URL</label>
-                  <input
-                    type="text"
-                    value={projectForm.demoUrl}
-                    onChange={(e) => setProjectForm({ ...projectForm, demoUrl: e.target.value })}
-                    placeholder="https://... or /appointment?service=..."
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">GitHub Code Repository URL</label>
-                  <input
-                    type="text"
-                    value={projectForm.githubUrl}
-                    onChange={(e) => setProjectForm({ ...projectForm, githubUrl: e.target.value })}
-                    placeholder="https://github.com/Barela08/..."
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Summary & Problem Solved */}
               <div>
-                <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Executive Summary *</label>
+                <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Cover Image URL *</label>
+                <input
+                  type="text"
+                  required
+                  value={projectForm.image}
+                  onChange={(e) => setProjectForm({ ...projectForm, image: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Summary *</label>
                 <textarea
                   rows={2}
                   required
                   value={projectForm.summary}
                   onChange={(e) => setProjectForm({ ...projectForm, summary: e.target.value })}
-                  placeholder="Overview of this project..."
                   className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Problem Solved</label>
-                <textarea
-                  rows={2}
-                  value={projectForm.problemSolved}
-                  onChange={(e) => setProjectForm({ ...projectForm, problemSolved: e.target.value })}
-                  placeholder="The real business challenge this software resolved..."
-                  className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                />
-              </div>
-
-              {/* Features & Tech Stack */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Key Features (One per line)</label>
-                  <textarea
-                    rows={4}
-                    value={projectForm.mainFeaturesText}
-                    onChange={(e) => setProjectForm({ ...projectForm, mainFeaturesText: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Tech Stack (Comma-separated)</label>
-                  <textarea
-                    rows={4}
-                    value={projectForm.techStackText}
-                    onChange={(e) => setProjectForm({ ...projectForm, techStackText: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-                  />
-                </div>
-              </div>
-
-              {/* MULTIPLE GALLERY IMAGES SECTION */}
-              <div className="p-4 rounded-2xl bg-[#080B12] border border-[#1E293B] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-mono font-bold text-white uppercase flex items-center space-x-1.5">
-                    <ImageIcon className="w-3.5 h-3.5 text-[#00E676]" />
-                    <span>Project Multi-Image Gallery ({projectForm.galleryItems.length})</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newImg: ProjectGalleryImage = {
-                        id: `img-${Date.now()}`,
-                        url: '',
-                        alt: projectForm.title,
-                        caption: '',
-                        order: projectForm.galleryItems.length + 1,
-                      };
-                      setProjectForm({
-                        ...projectForm,
-                        galleryItems: [...projectForm.galleryItems, newImg],
-                      });
-                    }}
-                    className="px-2.5 py-1 rounded-lg bg-[#141D30] text-[#00E676] text-xs font-mono hover:bg-[#00E676] hover:text-[#080B12] transition-colors"
-                  >
-                    + Add Gallery Image
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {projectForm.galleryItems.map((g, gIdx) => (
-                    <div key={g.id} className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        placeholder="Image URL (/uploads/...)"
-                        value={g.url}
-                        onChange={(e) => {
-                          const items = [...projectForm.galleryItems];
-                          items[gIdx].url = e.target.value;
-                          setProjectForm({ ...projectForm, galleryItems: items });
-                        }}
-                        className="flex-1 px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Caption"
-                        value={g.caption || ''}
-                        onChange={(e) => {
-                          const items = [...projectForm.galleryItems];
-                          items[gIdx].caption = e.target.value;
-                          setProjectForm({ ...projectForm, galleryItems: items });
-                        }}
-                        className="w-48 px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const items = projectForm.galleryItems.filter((_, i) => i !== gIdx);
-                          setProjectForm({ ...projectForm, galleryItems: items });
-                        }}
-                        className="p-1.5 rounded text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* VIDEOS SECTION */}
-              <div className="p-4 rounded-2xl bg-[#080B12] border border-[#1E293B] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-mono font-bold text-white uppercase flex items-center space-x-1.5">
-                    <VideoIcon className="w-3.5 h-3.5 text-[#A78BFA]" />
-                    <span>Project Videos &amp; Demos ({projectForm.videoItems.length})</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newVid: ProjectVideo = {
-                        id: `vid-${Date.now()}`,
-                        title: `${projectForm.title} Demo`,
-                        url: '',
-                        type: 'youtube',
-                        order: projectForm.videoItems.length + 1,
-                        position: 'after',
-                      };
-                      setProjectForm({
-                        ...projectForm,
-                        videoItems: [...projectForm.videoItems, newVid],
-                      });
-                    }}
-                    className="px-2.5 py-1 rounded-lg bg-[#141D30] text-[#A78BFA] text-xs font-mono hover:bg-[#A78BFA] hover:text-[#080B12] transition-colors"
-                  >
-                    + Add Video
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {projectForm.videoItems.map((v, vIdx) => (
-                    <div key={v.id} className="flex flex-wrap items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="Video Title"
-                        value={v.title}
-                        onChange={(e) => {
-                          const items = [...projectForm.videoItems];
-                          items[vIdx].title = e.target.value;
-                          setProjectForm({ ...projectForm, videoItems: items });
-                        }}
-                        className="w-40 px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                      />
-                      <input
-                        type="text"
-                        placeholder="YouTube / Vimeo URL or /uploads/video.mp4"
-                        value={v.url}
-                        onChange={(e) => {
-                          const items = [...projectForm.videoItems];
-                          items[vIdx].url = e.target.value;
-                          setProjectForm({ ...projectForm, videoItems: items });
-                        }}
-                        className="flex-1 min-w-[200px] px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                      />
-                      <select
-                        value={v.position}
-                        onChange={(e) => {
-                          const items = [...projectForm.videoItems];
-                          items[vIdx].position = e.target.value as any;
-                          setProjectForm({ ...projectForm, videoItems: items });
-                        }}
-                        className="px-2.5 py-1.5 rounded-lg bg-[#0F1624] border border-[#1E293B] text-xs text-white"
-                      >
-                        <option value="after">After Screenshots</option>
-                        <option value="before">Before Screenshots</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const items = projectForm.videoItems.filter((_, i) => i !== vIdx);
-                          setProjectForm({ ...projectForm, videoItems: items });
-                        }}
-                        className="p-1.5 rounded text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
               <div className="flex items-center justify-end space-x-3 pt-4 border-t border-[#1E293B]">
                 <button
                   type="button"
@@ -3077,70 +2855,18 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={projectSubmitting}
-                  className="px-6 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center space-x-1.5 disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold uppercase tracking-wider"
                 >
-                  {projectSubmitting ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Saving Project...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>{isEditingProject ? 'Save Changes' : 'Publish Project'}</span>
-                    </>
-                  )}
+                  {projectSubmitting ? 'Saving...' : 'Save Project'}
                 </button>
               </div>
-
             </form>
-
           </div>
         </div>
       )}
 
       {/* ========================================================= */}
-      {/* MODAL 2: PROJECT PREVIEW MODAL */}
-      {/* ========================================================= */}
-      {previewProject && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#0F1624] border border-[#1E293B] rounded-3xl w-full max-w-2xl p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
-              <span className="text-xs font-mono text-[#00E676] uppercase">Project Preview</span>
-              <button onClick={() => setPreviewProject(null)} className="p-1 rounded text-[#9AA3B8] hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="relative h-64 w-full rounded-2xl overflow-hidden bg-[#080B12] border border-[#1E293B]">
-              <Image src={previewProject.image} alt={previewProject.title} fill className="object-cover" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-xs font-mono text-[#00E676]">{previewProject.category}</span>
-              <h3 className="text-2xl font-bold text-white">{previewProject.title}</h3>
-              <p className="text-sm text-[#9AA3B8]">{previewProject.summary}</p>
-              {previewProject.problemSolved && (
-                <div className="p-3 rounded-xl bg-[#080B12] text-xs text-[#38BDF8]">
-                  <strong>Problem Solved:</strong> {previewProject.problemSolved}
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-4 border-t border-[#1E293B]">
-              <button
-                onClick={() => setPreviewProject(null)}
-                className="px-5 py-2 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold"
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* MODAL 3: IN-USE WARNING FOR MEDIA DELETION */}
+      {/* MODAL 4: IN-USE WARNING FOR MEDIA DELETION */}
       {/* ========================================================= */}
       {mediaInUseWarning && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -3157,10 +2883,6 @@ export default function AdminDashboardPage() {
                 <li key={i}>&bull; {r}</li>
               ))}
             </ul>
-            <p className="text-xs text-red-400">
-              Deleting it now will result in broken images on these pages.
-            </p>
-
             <div className="flex justify-end space-x-2 pt-2">
               <button
                 onClick={() => setMediaInUseWarning(null)}
@@ -3180,7 +2902,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL 4: LEAD DETAILS & INTERNAL NOTES MODAL */}
+      {/* MODAL 5: LEAD DETAILS & INTERNAL NOTES MODAL */}
       {/* ========================================================= */}
       {selectedLead && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -3205,22 +2927,23 @@ export default function AdminDashboardPage() {
               {selectedLead.serviceRequired && (
                 <div>Service Required: <strong className="text-white">{selectedLead.serviceRequired}</strong></div>
               )}
-              {selectedLead.preferredDate && (
-                <div>Date &amp; Time: <strong className="text-white">{selectedLead.preferredDate} at {selectedLead.preferredTime}</strong></div>
-              )}
-              {selectedLead.projectDescription && (
-                <div className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-[#9AA3B8]">
-                  {selectedLead.projectDescription}
-                </div>
-              )}
-              {selectedLead.message && (
-                <div className="p-3 rounded-xl bg-[#080B12] border border-[#1E293B] text-[#9AA3B8]">
-                  {selectedLead.message}
+              {selectedLead.visitorId && (
+                <div className="p-2 rounded-lg bg-[#080B12] border border-[#1E293B] font-mono text-[11px] text-[#A78BFA] flex items-center justify-between">
+                  <span>Visitor ID: {selectedLead.visitorId.substring(0, 20)}...</span>
+                  <button
+                    onClick={() => {
+                      const v = visitorsList.find((vis) => vis.visitorId === selectedLead.visitorId);
+                      if (v) setSelectedVisitorDetail(v);
+                      else alert(`Visitor Profile ${selectedLead.visitorId}`);
+                    }}
+                    className="text-[#00E676] hover:underline"
+                  >
+                    View Journey &rarr;
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* Status Change Selector */}
             <div>
               <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Status Workflow</label>
               <select
@@ -3241,18 +2964,6 @@ export default function AdminDashboardPage() {
               </select>
             </div>
 
-            {/* Internal Notes */}
-            <div>
-              <label className="text-xs font-mono text-[#9AA3B8] block mb-1">Internal Admin Notes</label>
-              <textarea
-                rows={3}
-                placeholder="Add confidential notes about this client..."
-                value={leadNotesInput !== '' ? leadNotesInput : (selectedLead.notes || '')}
-                onChange={(e) => setLeadNotesInput(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#080B12] border border-[#1E293B] text-xs text-white"
-              />
-            </div>
-
             <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]">
               <button
                 onClick={() => handleDeleteLead(
@@ -3266,46 +2977,10 @@ export default function AdminDashboardPage() {
               </button>
 
               <button
-                onClick={() => {
-                  handleUpdateLead(
-                    selectedLead.fullName ? 'appointment' : selectedLead.projectScope ? 'quote' : 'enquiry',
-                    selectedLead.id,
-                    { notes: leadNotesInput }
-                  );
-                  setSelectedLead(null);
-                }}
+                onClick={() => setSelectedLead(null)}
                 className="px-5 py-2 rounded-xl bg-[#00E676] text-[#080B12] font-mono text-xs font-bold"
               >
-                Save &amp; Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* MODAL 5: DELETE PROJECT CONFIRMATION */}
-      {/* ========================================================= */}
-      {deleteConfirmProject && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0F1624] border border-red-500/40 rounded-3xl w-full max-w-sm p-6 space-y-4 text-center">
-            <Trash2 className="w-10 h-10 text-red-400 mx-auto" />
-            <h3 className="text-base font-bold text-white">Delete Project?</h3>
-            <p className="text-xs text-[#9AA3B8]">
-              Are you sure you want to permanently delete <strong>{deleteConfirmProject.title}</strong>? This action cannot be undone.
-            </p>
-            <div className="flex justify-center space-x-3 pt-2">
-              <button
-                onClick={() => setDeleteConfirmProject(null)}
-                className="px-4 py-2 rounded-xl bg-[#080B12] text-xs font-mono text-[#9AA3B8] hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDeleteProject(deleteConfirmProject.id)}
-                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-mono font-bold hover:bg-red-700"
-              >
-                Confirm Delete
+                Close
               </button>
             </div>
           </div>

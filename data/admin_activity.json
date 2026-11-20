@@ -1,5 +1,325 @@
 [
   {
+    "action": "LOGIN_SUCCESS",
+    "targetType": "auth",
+    "targetId": "usr-owner-01",
+    "description": "Admin login successful (owner) from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbnh0-192",
+    "timestamp": "2026-11-20T08:40:46.740Z"
+  },
+  {
+    "action": "SECURITY_UNLOCK",
+    "targetType": "system",
+    "description": "Security lockout manually lifted for: hackifypro@gmail.com",
+    "adminEmail": "system_recovery@hackifypro.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbn9i-368",
+    "timestamp": "2026-11-20T08:40:46.470Z"
+  },
+  {
+    "action": "BRUTE_FORCE_LOCKOUT",
+    "targetType": "auth",
+    "description": "Login blocked by progressive cooldown for IP: ::1 (cooldown: 30s)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbn9a-489",
+    "timestamp": "2026-11-20T08:40:46.462Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbn93-604",
+    "timestamp": "2026-11-20T08:40:46.455Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbn1r-886",
+    "timestamp": "2026-11-20T08:40:46.191Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbmu9-607",
+    "timestamp": "2026-11-20T08:40:45.921Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbmmv-471",
+    "timestamp": "2026-11-20T08:40:45.655Z"
+  },
+  {
+    "action": "LOGOUT",
+    "targetType": "auth",
+    "description": "Admin logged out and session revoked (sess_mwoqbmet_b30171ae93a769ac)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbmf9-227",
+    "timestamp": "2026-11-20T08:40:45.381Z"
+  },
+  {
+    "action": "LOGIN_SUCCESS",
+    "targetType": "auth",
+    "targetId": "usr-owner-01",
+    "description": "Admin login successful (owner) from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbmeu-444",
+    "timestamp": "2026-11-20T08:40:45.366Z"
+  },
+  {
+    "action": "SECURITY_UNLOCK",
+    "targetType": "system",
+    "description": "Security lockout manually lifted for: ::1",
+    "adminEmail": "system_recovery@hackifypro.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqbi6g-842",
+    "timestamp": "2026-11-20T08:40:39.880Z"
+  },
+  {
+    "action": "LOGIN_SUCCESS",
+    "targetType": "auth",
+    "targetId": "usr-owner-01",
+    "description": "Admin login successful (owner) from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqah0c-711",
+    "timestamp": "2026-11-20T08:39:51.708Z"
+  },
+  {
+    "action": "SECURITY_UNLOCK",
+    "targetType": "system",
+    "description": "Security lockout manually lifted for: hackifypro@gmail.com",
+    "adminEmail": "system_recovery@hackifypro.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqagsh-228",
+    "timestamp": "2026-11-20T08:39:51.425Z"
+  },
+  {
+    "action": "BRUTE_FORCE_LOCKOUT",
+    "targetType": "auth",
+    "description": "Login blocked by progressive cooldown for IP: ::1 (cooldown: 30s)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqagsb-938",
+    "timestamp": "2026-11-20T08:39:51.419Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqags0-298",
+    "timestamp": "2026-11-20T08:39:51.408Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqagkh-814",
+    "timestamp": "2026-11-20T08:39:51.137Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqagcx-792",
+    "timestamp": "2026-11-20T08:39:50.865Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqag5j-756",
+    "timestamp": "2026-11-20T08:39:50.599Z"
+  },
+  {
+    "action": "LOGOUT",
+    "targetType": "auth",
+    "description": "Admin logged out and session revoked (sess_mwoqafx6_8e95b29e74f6587f)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqafxs-382",
+    "timestamp": "2026-11-20T08:39:50.320Z"
+  },
+  {
+    "action": "LOGIN_SUCCESS",
+    "targetType": "auth",
+    "targetId": "usr-owner-01",
+    "description": "Admin login successful (owner) from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqafx8-870",
+    "timestamp": "2026-11-20T08:39:50.300Z"
+  },
+  {
+    "action": "SECURITY_UNLOCK",
+    "targetType": "system",
+    "description": "Security lockout manually lifted for: ::1",
+    "adminEmail": "system_recovery@hackifypro.com",
+    "ipAddress": "::1",
+    "id": "act-mwoqa9x2-413",
+    "timestamp": "2026-11-20T08:39:42.518Z"
+  },
+  {
+    "action": "BRUTE_FORCE_LOCKOUT",
+    "targetType": "auth",
+    "description": "Login blocked by progressive cooldown for IP: ::1 (cooldown: 14s)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq40xh-997",
+    "timestamp": "2026-11-20T08:34:50.933Z"
+  },
+  {
+    "action": "BRUTE_FORCE_LOCKOUT",
+    "targetType": "auth",
+    "description": "Login blocked by progressive cooldown for IP: ::1 (cooldown: 30s)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3nv3-853",
+    "timestamp": "2026-11-20T08:34:33.999Z"
+  },
+  {
+    "action": "BRUTE_FORCE_LOCKOUT",
+    "targetType": "auth",
+    "description": "Login blocked by progressive cooldown for IP: ::1 (cooldown: 30s)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3nur-823",
+    "timestamp": "2026-11-20T08:34:33.987Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3nul-154",
+    "timestamp": "2026-11-20T08:34:33.981Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3nn6-455",
+    "timestamp": "2026-11-20T08:34:33.714Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3nfq-896",
+    "timestamp": "2026-11-20T08:34:33.446Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3n7y-162",
+    "timestamp": "2026-11-20T08:34:33.166Z"
+  },
+  {
+    "action": "LOGOUT",
+    "targetType": "auth",
+    "description": "Admin logged out and session revoked (sess_mwoq3mzx_9db6280cf108d114)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3n0d-827",
+    "timestamp": "2026-11-20T08:34:32.893Z"
+  },
+  {
+    "action": "LOGIN_SUCCESS",
+    "targetType": "auth",
+    "targetId": "usr-owner-01",
+    "description": "Admin login successful (owner) from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq3mzz-126",
+    "timestamp": "2026-11-20T08:34:32.879Z"
+  },
+  {
+    "action": "BRUTE_FORCE_LOCKOUT",
+    "targetType": "auth",
+    "description": "Login blocked by progressive cooldown for IP: ::1 (cooldown: 30s)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq2nm0-909",
+    "timestamp": "2026-11-20T08:33:47.016Z"
+  },
+  {
+    "action": "BRUTE_FORCE_LOCKOUT",
+    "targetType": "auth",
+    "description": "Login blocked by progressive cooldown for IP: ::1 (cooldown: 30s)",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq2nln-561",
+    "timestamp": "2026-11-20T08:33:47.003Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq2nlg-742",
+    "timestamp": "2026-11-20T08:33:46.996Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq2ndm-298",
+    "timestamp": "2026-11-20T08:33:46.714Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq2n62-212",
+    "timestamp": "2026-11-20T08:33:46.442Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::1",
+    "id": "act-mwoq2mxq-159",
+    "timestamp": "2026-11-20T08:33:46.142Z"
+  },
+  {
     "action": "DELETE_PROJECT",
     "targetType": "project",
     "targetId": "PROJ-MWONO953-887",

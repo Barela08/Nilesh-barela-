@@ -84,6 +84,7 @@ export interface Appointment {
   meetingLink?: string;
   followUpDate?: string;
   isRead?: boolean;
+  visitorId?: string;
   createdAt: string;
   ipAddress?: string;
   dpdpConsent?: boolean;
@@ -160,6 +161,7 @@ export interface Enquiry {
   followUpDate?: string;
   isRead?: boolean;
   isSpam?: boolean;
+  visitorId?: string;
   createdAt: string;
   ipAddress?: string;
   dpdpConsent?: boolean;
@@ -236,6 +238,7 @@ export interface QuoteRequest {
   notes?: string;
   followUpDate?: string;
   isRead?: boolean;
+  visitorId?: string;
   createdAt: string;
   ipAddress?: string;
   dpdpConsent?: boolean;

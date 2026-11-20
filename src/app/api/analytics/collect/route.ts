@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbAnalytics, dbProjects } from '@/lib/db';
+import { dbVisitorIntelligence } from '@/lib/visitorIntelligence';
 import { cleanText } from '@/lib/security';
 
 export async function POST(req: NextRequest) {
@@ -11,11 +12,11 @@ export async function POST(req: NextRequest) {
 
     const visitorId = cleanText(body.visitorId, 64) || 'anon_visitor';
     const sessionId = cleanText(body.sessionId, 64) || 'anon_session';
-    const type = body.type === 'heartbeat' ? 'heartbeat' : body.type === 'conversion' ? 'conversion' : 'pageview';
+    const type = cleanText(body.type, 30) || 'pageview';
     const path = cleanText(body.path, 200) || '/';
     const title = cleanText(body.title, 200);
     const referrer = cleanText(body.referrer, 300);
-    
+
     let device: 'desktop' | 'mobile' | 'tablet' = 'desktop';
     if (body.device === 'mobile' || body.device === 'tablet') {
       device = body.device;
@@ -34,10 +35,35 @@ export async function POST(req: NextRequest) {
     const utmMedium = cleanText(body.utmMedium, 100);
     const utmCampaign = cleanText(body.utmCampaign, 100);
 
+    // 1. Handle Interaction Events (WhatsApp, Call, Demo clicks)
+    if (type === 'interaction' && body.interactionType) {
+      dbVisitorIntelligence.recordInteraction({
+        visitorId,
+        type: body.interactionType,
+        targetUrl: cleanText(body.targetUrl, 300) || '',
+        page: path,
+      });
+      return NextResponse.json({ success: true, message: 'Interaction recorded' });
+    }
+
+    // 2. Handle Form Conversion Funnel Events (viewed, started, abandoned, submitted)
+    if (type === 'form_stage' && body.formType && body.stage) {
+      const record = dbVisitorIntelligence.recordFormStage({
+        visitorId,
+        sessionId,
+        formType: body.formType,
+        formPage: path,
+        stage: body.stage,
+        leadId: body.leadId ? cleanText(body.leadId, 64) : undefined,
+      });
+      return NextResponse.json({ success: true, formRecordId: record.id });
+    }
+
+    // 3. Regular Pageview / Heartbeat Event
     const event = dbAnalytics.recordEvent({
       visitorId,
       sessionId,
-      type,
+      type: type === 'heartbeat' ? 'heartbeat' : type === 'conversion' ? 'conversion' : 'pageview',
       path,
       title,
       referrer,
@@ -49,7 +75,19 @@ export async function POST(req: NextRequest) {
       utmCampaign,
     });
 
-    // If it's a project page view, check if we can increment project views
+    // Record to Visitor Intelligence Profile
+    dbVisitorIntelligence.recordVisit({
+      visitorId,
+      sessionId,
+      path,
+      title,
+      referrer,
+      device,
+      browser,
+      os,
+    });
+
+    // Increment Project Views if project page
     if (type === 'pageview') {
       const projects = dbProjects.getAll();
       for (const p of projects) {

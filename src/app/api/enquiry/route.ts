@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
       budgetRange: budgetRange ? sanitizeHtml(budgetRange) : undefined,
       timeline: timeline ? sanitizeHtml(timeline) : undefined,
       message: sanitizeHtml(message),
+      visitorId: body.visitorId ? cleanText(body.visitorId, 64) : undefined,
       ipAddress: ip,
     });
 

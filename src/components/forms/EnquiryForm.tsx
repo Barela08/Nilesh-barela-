@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, AlertCircle, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { servicesData } from '@/data/services';
 import { productsData } from '@/data/products';
 import { trackWhatsAppClick } from '@/lib/analytics';
+import { trackFormStage, getAnonymousVisitorId, getAnonymousSessionId } from '@/components/shared/VisitorTracker';
 
 interface Props {
   defaultService?: string;
@@ -15,6 +16,24 @@ export default function EnquiryForm({ defaultService = '' }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const hasStartedRef = useRef(false);
+  const isSubmittedRef = useRef(false);
+
+  useEffect(() => {
+    trackFormStage('enquiry', 'viewed');
+    const handleBeforeUnload = () => {
+      if (hasStartedRef.current && !isSubmittedRef.current) {
+        trackFormStage('enquiry', 'abandoned');
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      if (hasStartedRef.current && !isSubmittedRef.current) {
+        trackFormStage('enquiry', 'abandoned');
+      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,6 +45,10 @@ export default function EnquiryForm({ defaultService = '' }: Props) {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      trackFormStage('enquiry', 'started');
+    }
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
@@ -52,20 +75,28 @@ export default function EnquiryForm({ defaultService = '' }: Props) {
     setLoading(true);
 
     try {
+      const visitorId = getAnonymousVisitorId();
+      const sessionId = getAnonymousSessionId();
+
       const res = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, visitorId, sessionId }),
       });
 
       const result = await res.json();
 
       if (!res.ok) {
+        trackFormStage('enquiry', 'failed');
         throw new Error(result.error || 'Failed to submit enquiry. Please try again.');
       }
 
+      isSubmittedRef.current = true;
+      trackFormStage('enquiry', 'submitted', result.id);
+
       router.push(`/enquiry-confirmation?id=${result.id}&name=${encodeURIComponent(formData.name)}`);
     } catch (err: any) {
+      trackFormStage('enquiry', 'failed');
       setError(err.message || 'An unexpected error occurred. Please contact us directly on WhatsApp.');
       setLoading(false);
     }

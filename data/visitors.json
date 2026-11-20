@@ -1,0 +1,235 @@
+{
+  "vid_test_1795163619893": {
+    "visitorId": "vid_test_1795163619893",
+    "firstSeen": "2026-11-20T08:33:39.908Z",
+    "lastSeen": "2026-11-20T08:33:45.572Z",
+    "totalVisits": 2,
+    "totalSessions": 2,
+    "totalPageViews": 3,
+    "isReturning": true,
+    "engagementLabel": "Inquiry Submitted",
+    "pagesVisited": [
+      "/portfolio",
+      "/",
+      "/custom-software-development"
+    ],
+    "projectPagesVisited": [],
+    "deviceCategory": "desktop",
+    "browserCategory": "Unknown",
+    "osCategory": "Unknown",
+    "trafficSource": "Referral",
+    "referrer": "https://google.com",
+    "location": "India (Approximate)",
+    "sessions": [
+      {
+        "sessionId": "sid_test_2_1795163625563",
+        "startedAt": "2026-11-20T08:33:45.572Z",
+        "endedAt": "2026-11-20T08:33:45.572Z",
+        "durationSeconds": 1,
+        "entryPath": "/custom-software-development",
+        "exitPath": "/custom-software-development",
+        "pageviews": 1,
+        "pages": [
+          "/custom-software-development"
+        ],
+        "projects": []
+      },
+      {
+        "sessionId": "sid_test_1_1795163619893",
+        "startedAt": "2026-11-20T08:33:39.908Z",
+        "endedAt": "2026-11-20T08:33:39.922Z",
+        "durationSeconds": 1,
+        "entryPath": "/portfolio",
+        "exitPath": "/",
+        "pageviews": 2,
+        "pages": [
+          "/portfolio",
+          "/"
+        ],
+        "projects": []
+      }
+    ],
+    "interactions": [],
+    "conversions": [
+      {
+        "id": "conv-mwoq2mhh-330",
+        "formType": "enquiry",
+        "leadId": "ENQ-MWOQ2I5O-700",
+        "timestamp": "2026-11-20T08:33:45.557Z"
+      }
+    ]
+  },
+  "vid_test_1795163672541": {
+    "visitorId": "vid_test_1795163672541",
+    "firstSeen": "2026-11-20T08:34:32.550Z",
+    "lastSeen": "2026-11-20T08:34:32.598Z",
+    "totalVisits": 2,
+    "totalSessions": 2,
+    "totalPageViews": 3,
+    "isReturning": true,
+    "engagementLabel": "Returning Visitor",
+    "pagesVisited": [
+      "/portfolio",
+      "/",
+      "/custom-software-development"
+    ],
+    "projectPagesVisited": [],
+    "deviceCategory": "desktop",
+    "browserCategory": "Unknown",
+    "osCategory": "Unknown",
+    "trafficSource": "Referral",
+    "referrer": "https://google.com",
+    "location": "India (Approximate)",
+    "sessions": [
+      {
+        "sessionId": "sid_test_2_1795163672589",
+        "startedAt": "2026-11-20T08:34:32.598Z",
+        "endedAt": "2026-11-20T08:34:32.598Z",
+        "durationSeconds": 1,
+        "entryPath": "/custom-software-development",
+        "exitPath": "/custom-software-development",
+        "pageviews": 1,
+        "pages": [
+          "/custom-software-development"
+        ],
+        "projects": []
+      },
+      {
+        "sessionId": "sid_test_1_1795163672541",
+        "startedAt": "2026-11-20T08:34:32.550Z",
+        "endedAt": "2026-11-20T08:34:32.564Z",
+        "durationSeconds": 1,
+        "entryPath": "/portfolio",
+        "exitPath": "/",
+        "pageviews": 2,
+        "pages": [
+          "/portfolio",
+          "/"
+        ],
+        "projects": []
+      }
+    ],
+    "interactions": [],
+    "conversions": []
+  },
+  "vid_test_1795163982815": {
+    "visitorId": "vid_test_1795163982815",
+    "firstSeen": "2026-11-20T08:39:42.830Z",
+    "lastSeen": "2026-11-20T08:39:50.017Z",
+    "totalVisits": 2,
+    "totalSessions": 2,
+    "totalPageViews": 3,
+    "isReturning": true,
+    "engagementLabel": "Inquiry Submitted",
+    "pagesVisited": [
+      "/portfolio",
+      "/",
+      "/custom-software-development"
+    ],
+    "projectPagesVisited": [],
+    "deviceCategory": "desktop",
+    "browserCategory": "Unknown",
+    "osCategory": "Unknown",
+    "trafficSource": "Referral",
+    "referrer": "https://google.com",
+    "location": "India (Approximate)",
+    "sessions": [
+      {
+        "sessionId": "sid_test_2_1795163990006",
+        "startedAt": "2026-11-20T08:39:50.017Z",
+        "endedAt": "2026-11-20T08:39:50.017Z",
+        "durationSeconds": 1,
+        "entryPath": "/custom-software-development",
+        "exitPath": "/custom-software-development",
+        "pageviews": 1,
+        "pages": [
+          "/custom-software-development"
+        ],
+        "projects": []
+      },
+      {
+        "sessionId": "sid_test_1_1795163982815",
+        "startedAt": "2026-11-20T08:39:42.830Z",
+        "endedAt": "2026-11-20T08:39:42.847Z",
+        "durationSeconds": 1,
+        "entryPath": "/portfolio",
+        "exitPath": "/",
+        "pageviews": 2,
+        "pages": [
+          "/portfolio",
+          "/"
+        ],
+        "projects": []
+      }
+    ],
+    "interactions": [],
+    "conversions": [
+      {
+        "id": "conv-mwoqafox-518",
+        "formType": "enquiry",
+        "leadId": "ENQ-MWOQAA73-899",
+        "timestamp": "2026-11-20T08:39:50.001Z"
+      }
+    ]
+  },
+  "vid_test_1795164039955": {
+    "visitorId": "vid_test_1795164039955",
+    "firstSeen": "2026-11-20T08:40:39.964Z",
+    "lastSeen": "2026-11-20T08:40:45.101Z",
+    "totalVisits": 2,
+    "totalSessions": 2,
+    "totalPageViews": 3,
+    "isReturning": true,
+    "engagementLabel": "Inquiry Submitted",
+    "pagesVisited": [
+      "/portfolio",
+      "/",
+      "/custom-software-development"
+    ],
+    "projectPagesVisited": [],
+    "deviceCategory": "desktop",
+    "browserCategory": "Unknown",
+    "osCategory": "Unknown",
+    "trafficSource": "Referral",
+    "referrer": "https://google.com",
+    "location": "India (Approximate)",
+    "sessions": [
+      {
+        "sessionId": "sid_test_2_1795164045091",
+        "startedAt": "2026-11-20T08:40:45.101Z",
+        "endedAt": "2026-11-20T08:40:45.101Z",
+        "durationSeconds": 1,
+        "entryPath": "/custom-software-development",
+        "exitPath": "/custom-software-development",
+        "pageviews": 1,
+        "pages": [
+          "/custom-software-development"
+        ],
+        "projects": []
+      },
+      {
+        "sessionId": "sid_test_1_1795164039955",
+        "startedAt": "2026-11-20T08:40:39.964Z",
+        "endedAt": "2026-11-20T08:40:39.977Z",
+        "durationSeconds": 1,
+        "entryPath": "/portfolio",
+        "exitPath": "/",
+        "pageviews": 2,
+        "pages": [
+          "/portfolio",
+          "/"
+        ],
+        "projects": []
+      }
+    ],
+    "interactions": [],
+    "conversions": [
+      {
+        "id": "conv-mwoqbm72-724",
+        "formType": "enquiry",
+        "leadId": "ENQ-MWOQBI9P-880",
+        "timestamp": "2026-11-20T08:40:45.086Z"
+      }
+    ]
+  }
+}

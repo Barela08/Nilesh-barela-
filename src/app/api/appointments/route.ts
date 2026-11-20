@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
       preferredTime: sanitizeHtml(preferredTime),
       projectBudget: projectBudget ? sanitizeHtml(projectBudget) : undefined,
       projectDescription: sanitizeHtml(projectDescription),
+      visitorId: body.visitorId ? cleanText(body.visitorId, 64) : undefined,
       ipAddress: ip,
     });
 

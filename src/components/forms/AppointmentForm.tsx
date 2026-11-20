@@ -1,15 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, Send, ShieldCheck, AlertCircle } from 'lucide-react';
 import { servicesData } from '@/data/services';
 import { productsData } from '@/data/products';
+import { trackFormStage, getAnonymousVisitorId, getAnonymousSessionId } from '@/components/shared/VisitorTracker';
 
 export default function AppointmentForm({ defaultService = '' }: { defaultService?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const hasStartedRef = useRef(false);
+  const isSubmittedRef = useRef(false);
+  
+  // Track Form Viewed
+  useEffect(() => {
+    trackFormStage('appointment', 'viewed');
+
+    const handleBeforeUnload = () => {
+      if (hasStartedRef.current && !isSubmittedRef.current) {
+        trackFormStage('appointment', 'abandoned');
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      if (hasStartedRef.current && !isSubmittedRef.current) {
+        trackFormStage('appointment', 'abandoned');
+      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
   
   // Tomorrow's date formatted as YYYY-MM-DD to prevent past dates
   const tomorrow = new Date();
@@ -30,6 +51,10 @@ export default function AppointmentForm({ defaultService = '' }: { defaultServic
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      trackFormStage('appointment', 'started');
+    }
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
@@ -61,21 +86,29 @@ export default function AppointmentForm({ defaultService = '' }: { defaultServic
     setLoading(true);
 
     try {
+      const visitorId = getAnonymousVisitorId();
+      const sessionId = getAnonymousSessionId();
+
       const res = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, visitorId, sessionId }),
       });
 
       const result = await res.json();
 
       if (!res.ok) {
+        trackFormStage('appointment', 'failed');
         throw new Error(result.error || 'Failed to schedule appointment. Please try again.');
       }
+
+      isSubmittedRef.current = true;
+      trackFormStage('appointment', 'submitted', result.id);
 
       // Genuine successful submission redirect to confirmation page with reference ID
       router.push(`/appointment-confirmation?id=${result.id}&name=${encodeURIComponent(formData.fullName)}`);
     } catch (err: any) {
+      trackFormStage('appointment', 'failed');
       setError(err.message || 'An unexpected error occurred. Please contact us directly.');
       setLoading(false);
     }
