@@ -72,32 +72,9 @@ export function middleware(req: NextRequest) {
     return res;
   }
 
-  // 3. Direct /admin Route Cloaking
+  // 3. Direct /admin Route Access (Allow direct navigation to admin login page)
   if (pathname === '/admin' || pathname === '/admin/') {
-    // If user provides valid passkey ?key=... on /admin, unlock immediately
-    if (hasValidPasskey) {
-      const url = req.nextUrl.clone();
-      url.searchParams.delete('key'); // Clean key from address bar
-      const res = NextResponse.redirect(url);
-      res.cookies.set('hp_gate_pass', 'authorized', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      });
-      return res;
-    }
-
-    // If user has gatepass or active authenticated admin session, permit access
-    if (hasGatePass || hasAdminSession) {
-      return NextResponse.next();
-    }
-
-    // Unauthorized visitor or bot scanning /admin: Return 404 Not Found!
-    const notFoundUrl = req.nextUrl.clone();
-    notFoundUrl.pathname = '/_not-found';
-    return NextResponse.rewrite(notFoundUrl, { status: 404 });
+    return NextResponse.next();
   }
 
   // 4. Protect /api/admin/* routes from unauthenticated scanners

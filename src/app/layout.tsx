@@ -59,6 +59,7 @@ export const metadata: Metadata = {
       'google-site-verification': [
         '1N0vSqkiyjlA4M87-QM_g8S56wPyp8Gh3UY_Mi0QDH4',
         'googledbca3e63ac5f841c',
+        'dbca3e63ac5f841c',
       ],
       'msvalidate.01': 'googledbca3e63ac5f841c',
     },
