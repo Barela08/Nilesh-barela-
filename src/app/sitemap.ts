@@ -2,9 +2,10 @@ import { MetadataRoute } from 'next';
 import { servicesData } from '@/data/services';
 import { productsData } from '@/data/products';
 import { blogPosts } from '@/data/blog';
+import { company } from '@/data/company';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.nileshbarela.site';
+  const baseUrl = company.websiteUrl;
   const now = new Date();
 
   // Core static pages
