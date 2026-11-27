@@ -129,10 +129,33 @@ export default function PrivacyPolicyPage() {
           </div>
         </section>
 
-        {/* Section 4: Data Retention & Security */}
+        {/* Section 4: Google User Data & Third-Party Services */}
         <section className="space-y-4 text-sm text-[#9AA3B8] leading-relaxed">
           <h2 className="text-xl font-heading font-bold text-white flex items-center space-x-2">
             <span className="text-[#00E676]">4.</span>
+            <span>Google API Services User Data Policy &amp; Third-Party Disclosure</span>
+          </h2>
+          <p>
+            HackifyPro (<strong className="text-white">https://www.nileshbarela.site</strong>) does not sell, rent, or trade your personal information to third parties. Where our applications or integrations connect with Google APIs or Google Sign-In, we access only the minimum data explicitly authorized by you.
+          </p>
+          <p>
+            HackifyPro&apos;s use and transfer to any other app of information received from Google APIs will adhere to the{' '}
+            <a
+              href="https://developers.google.com/terms/api-services-user-data-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#00E676] underline hover:text-[#38BDF8]"
+            >
+              Google API Services User Data Policy
+            </a>
+            , including the Limited Use requirements. We do not use Google user data for advertising, and we do not share it with third parties except as necessary to provide or improve the requested service, comply with applicable law, or protect against security threats.
+          </p>
+        </section>
+
+        {/* Section 5: Data Retention & Security */}
+        <section className="space-y-4 text-sm text-[#9AA3B8] leading-relaxed">
+          <h2 className="text-xl font-heading font-bold text-white flex items-center space-x-2">
+            <span className="text-[#00E676]">5.</span>
             <span>Security Safeguards &amp; Data Retention (Section 8)</span>
           </h2>
           <p>
@@ -140,10 +163,10 @@ export default function PrivacyPolicyPage() {
           </p>
         </section>
 
-        {/* Section 5: Grievance Redressal Officer */}
+        {/* Section 6: Grievance Redressal Officer */}
         <section className="p-6 rounded-2xl bg-[#0F1624] border border-[#1E293B] space-y-4">
           <h2 className="text-lg font-heading font-bold text-white">
-            5. Grievance Redressal Officer (Section 13 DPDP Act)
+            6. Grievance Redressal Officer (Section 13 DPDP Act)
           </h2>
           <p className="text-xs text-[#9AA3B8] leading-relaxed">
             In accordance with the DPDP Act 2023, if you have any questions, wish to exercise any of your statutory rights, or wish to file a grievance regarding personal data processing, you may reach out directly to our designated Grievance Officer:
