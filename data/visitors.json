@@ -291,5 +291,42 @@
         "timestamp": "2026-11-20T08:55:38.649Z"
       }
     ]
+  },
+  "hp_v_06ulvgql_mwos9o5o": {
+    "visitorId": "hp_v_06ulvgql_mwos9o5o",
+    "firstSeen": "2026-11-20T09:35:13.571Z",
+    "lastSeen": "2026-11-20T09:35:13.571Z",
+    "totalVisits": 1,
+    "totalSessions": 1,
+    "totalPageViews": 1,
+    "isReturning": false,
+    "engagementLabel": "New Visitor",
+    "pagesVisited": [
+      "/"
+    ],
+    "projectPagesVisited": [],
+    "deviceCategory": "desktop",
+    "browserCategory": "Chrome",
+    "osCategory": "Windows",
+    "trafficSource": "Direct / Organic",
+    "referrer": "",
+    "location": "India (Approximate)",
+    "sessions": [
+      {
+        "sessionId": "hp_s_5z9bz0ke_mwos9o5p",
+        "startedAt": "2026-11-20T09:35:13.571Z",
+        "endedAt": "2026-11-20T09:35:13.571Z",
+        "durationSeconds": 1,
+        "entryPath": "/",
+        "exitPath": "/",
+        "pageviews": 1,
+        "pages": [
+          "/"
+        ],
+        "projects": []
+      }
+    ],
+    "interactions": [],
+    "conversions": []
   }
 }
