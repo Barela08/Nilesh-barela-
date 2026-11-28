@@ -47,20 +47,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Lookup Admin User
+    // 2. Lookup Admin User (process.env.ADMIN_PASSWORD overrides when configured)
     const users = getAdminUsers();
     let matchedUser: AdminUser | undefined = users.find((u) => u.email === email);
 
-    // Bootstrap fallback for default owner from environment variables
     const envEmail = (process.env.ADMIN_EMAIL || 'hackifypro@gmail.com').toLowerCase();
-    const envPass = process.env.ADMIN_PASSWORD || 'HackifyPro@2026!';
+    const envPass = process.env.ADMIN_PASSWORD || '';
     let isPasswordValid = false;
 
-    if (matchedUser) {
-      isPasswordValid = await verifyPassword(password, matchedUser.passwordHash);
-    } else if (email === envEmail) {
+    if (envPass && email === envEmail) {
       isPasswordValid = await verifyPassword(password, envPass);
-      if (isPasswordValid) {
+      if (isPasswordValid && !matchedUser) {
         matchedUser = {
           id: 'usr-owner-env',
           email: envEmail,
@@ -70,6 +67,10 @@ export async function POST(req: NextRequest) {
           createdAt: new Date().toISOString(),
         };
       }
+    }
+
+    if (!isPasswordValid && matchedUser) {
+      isPasswordValid = await verifyPassword(password, matchedUser.passwordHash);
     }
 
     if (matchedUser && isPasswordValid) {
@@ -102,10 +103,20 @@ export async function POST(req: NextRequest) {
 
       response.cookies.set('hp_admin_auth', session.token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: true,
+        sameSite: 'none',
+        partitioned: true,
         path: '/',
         maxAge: 60 * 60 * 24, // 24 hours
+      });
+
+      response.cookies.set('hp_gate_pass', 'authorized', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        partitioned: true,
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
       });
 
       return response;

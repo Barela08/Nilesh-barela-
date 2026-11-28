@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbProjects, dbAdminActivity, PortfolioProject } from '@/lib/db';
-import { authenticateAdminRequest, verifyAdminSessionToken, cleanText } from '@/lib/security';
+import { authenticateAdminRequest, verifyAdminSessionToken, cleanText, isSafeUrl } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
+
+function sanitizeProjectUrl(raw: unknown, maxLen: number = 300): string {
+  const cleaned = cleanText(raw, maxLen);
+  if (!cleaned) return '';
+  return isSafeUrl(cleaned) ? cleaned : '';
+}
 
 function getAdminEmail(req: NextRequest): string {
   const authHeader = req.headers.get('authorization');
@@ -16,8 +22,9 @@ function getAdminEmail(req: NextRequest): string {
 
 export async function GET(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const projects = dbProjects.getAll();
@@ -29,8 +36,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_projects');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -44,8 +52,8 @@ export async function POST(req: NextRequest) {
     const client = cleanText(body.client, 120) || 'HackifyPro Client';
     const market = cleanText(body.market, 120) || 'India & Global';
     const problemSolved = cleanText(body.problemSolved, 800) || '';
-    const image = cleanText(body.image, 300) || '/assets/hackifypro-workspace.png';
-    const demoUrl = cleanText(body.demoUrl, 300);
+    const image = sanitizeProjectUrl(body.image, 300) || '/assets/hackifypro-workspace.png';
+    const demoUrl = sanitizeProjectUrl(body.demoUrl, 300);
     const status = cleanText(body.status, 100) || 'Live & Deployed Demonstration';
 
     if (!title) {
@@ -62,7 +70,7 @@ export async function POST(req: NextRequest) {
     const location = cleanText(body.location, 100) || 'Maharashtra, India';
     const shortDescription = cleanText(body.shortDescription, 400) || summary;
     const fullDescription = typeof body.fullDescription === 'string' ? body.fullDescription : '';
-    const githubUrl = cleanText(body.githubUrl, 300);
+    const githubUrl = sanitizeProjectUrl(body.githubUrl, 300);
     const seoTitle = cleanText(body.seoTitle, 150) || `${title} | HackifyPro Software Portfolio`;
     const seoDescription = cleanText(body.seoDescription, 250) || summary;
 
@@ -71,7 +79,7 @@ export async function POST(req: NextRequest) {
     if (Array.isArray(body.gallery)) {
       gallery = body.gallery.map((g: any, idx: number) => ({
         id: g.id || `img-${Date.now().toString(36)}-${idx}`,
-        url: cleanText(g.url, 400),
+        url: sanitizeProjectUrl(g.url, 400),
         alt: cleanText(g.alt, 200) || title,
         caption: cleanText(g.caption, 250) || '',
         order: typeof g.order === 'number' ? g.order : idx + 1,
@@ -84,8 +92,8 @@ export async function POST(req: NextRequest) {
       videos = body.videos.map((v: any, idx: number) => ({
         id: v.id || `vid-${Date.now().toString(36)}-${idx}`,
         title: cleanText(v.title, 150) || `${title} Video`,
-        url: cleanText(v.url, 400),
-        poster: cleanText(v.poster, 400),
+        url: sanitizeProjectUrl(v.url, 400),
+        poster: sanitizeProjectUrl(v.poster, 400),
         type: v.type === 'file' ? 'file' : v.type === 'vimeo' ? 'vimeo' : v.type === 'youtube' ? 'youtube' : 'other',
         order: typeof v.order === 'number' ? v.order : idx + 1,
         position: v.position === 'before' ? 'before' : 'after',
@@ -97,7 +105,7 @@ export async function POST(req: NextRequest) {
     if (Array.isArray(body.externalUrls)) {
       externalUrls = body.externalUrls.map((u: any) => ({
         label: cleanText(u.label, 100) || 'External Link',
-        url: cleanText(u.url, 300),
+        url: sanitizeProjectUrl(u.url, 300),
       })).filter((u: any) => Boolean(u.url));
     }
 
@@ -174,8 +182,9 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_projects');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -197,8 +206,8 @@ export async function PUT(req: NextRequest) {
     if (body.client !== undefined) updates.client = cleanText(body.client, 120);
     if (body.market !== undefined) updates.market = cleanText(body.market, 120);
     if (body.problemSolved !== undefined) updates.problemSolved = cleanText(body.problemSolved, 800);
-    if (body.image !== undefined) updates.image = cleanText(body.image, 300);
-    if (body.demoUrl !== undefined) updates.demoUrl = cleanText(body.demoUrl, 300);
+    if (body.image !== undefined) updates.image = sanitizeProjectUrl(body.image, 300) || existing.image;
+    if (body.demoUrl !== undefined) updates.demoUrl = sanitizeProjectUrl(body.demoUrl, 300);
     if (body.status !== undefined) updates.status = cleanText(body.status, 100);
 
     if (body.projectType !== undefined) updates.projectType = cleanText(body.projectType, 100);
@@ -211,14 +220,14 @@ export async function PUT(req: NextRequest) {
     if (body.location !== undefined) updates.location = cleanText(body.location, 100);
     if (body.shortDescription !== undefined) updates.shortDescription = cleanText(body.shortDescription, 400);
     if (body.fullDescription !== undefined) updates.fullDescription = typeof body.fullDescription === 'string' ? body.fullDescription : '';
-    if (body.githubUrl !== undefined) updates.githubUrl = cleanText(body.githubUrl, 300);
+    if (body.githubUrl !== undefined) updates.githubUrl = sanitizeProjectUrl(body.githubUrl, 300);
     if (body.seoTitle !== undefined) updates.seoTitle = cleanText(body.seoTitle, 150);
     if (body.seoDescription !== undefined) updates.seoDescription = cleanText(body.seoDescription, 250);
 
     if (body.gallery !== undefined && Array.isArray(body.gallery)) {
       updates.gallery = body.gallery.map((g: any, idx: number) => ({
         id: g.id || `img-${Date.now().toString(36)}-${idx}`,
-        url: cleanText(g.url, 400),
+        url: sanitizeProjectUrl(g.url, 400),
         alt: cleanText(g.alt, 200),
         caption: cleanText(g.caption, 250),
         order: typeof g.order === 'number' ? g.order : idx + 1,
@@ -229,8 +238,8 @@ export async function PUT(req: NextRequest) {
       updates.videos = body.videos.map((v: any, idx: number) => ({
         id: v.id || `vid-${Date.now().toString(36)}-${idx}`,
         title: cleanText(v.title, 150),
-        url: cleanText(v.url, 400),
-        poster: cleanText(v.poster, 400),
+        url: sanitizeProjectUrl(v.url, 400),
+        poster: sanitizeProjectUrl(v.poster, 400),
         type: v.type === 'file' ? 'file' : v.type === 'vimeo' ? 'vimeo' : v.type === 'youtube' ? 'youtube' : 'other',
         order: typeof v.order === 'number' ? v.order : idx + 1,
         position: v.position === 'before' ? 'before' : 'after',
@@ -240,7 +249,7 @@ export async function PUT(req: NextRequest) {
     if (body.externalUrls !== undefined && Array.isArray(body.externalUrls)) {
       updates.externalUrls = body.externalUrls.map((u: any) => ({
         label: cleanText(u.label, 100),
-        url: cleanText(u.url, 300),
+        url: sanitizeProjectUrl(u.url, 300),
       })).filter((u: any) => Boolean(u.url));
     }
 
@@ -285,8 +294,9 @@ export async function PUT(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_projects');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -338,8 +348,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_projects');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const { searchParams } = new URL(req.url);

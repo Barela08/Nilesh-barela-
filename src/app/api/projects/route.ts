@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const projects = dbProjects.getAll();
+    const projects = dbProjects.getPublished();
     return NextResponse.json({ success: true, projects });
   } catch (err: any) {
     return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });

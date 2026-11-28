@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbAdminActivity } from '@/lib/db';
-import { verifyAdminSessionToken } from '@/lib/security';
+import { authenticateAdminRequest } from '@/lib/security';
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
-
-    if (!token || !verifyAdminSessionToken(token).valid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = authenticateAdminRequest(req);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
 
     const { searchParams } = new URL(req.url);

@@ -14,8 +14,9 @@ function getAdminEmail(req: NextRequest): string {
 
 export async function GET(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const appointments = dbAppointments.getAll();
@@ -46,8 +47,9 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_leads');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -100,8 +102,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    if (!authenticateAdminRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'delete_leads');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized. Admin session required.' }, { status: auth.status || 401 });
     }
 
     const { searchParams } = new URL(req.url);

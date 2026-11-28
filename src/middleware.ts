@@ -30,7 +30,6 @@ export function middleware(req: NextRequest) {
   // 1. Block any direct probe to .env, .git, data directory, and config files
   for (const pattern of BLOCKED_PATTERNS) {
     if (pattern.test(pathname)) {
-      // Return genuine 404 Not Found to prevent reconnaissance
       return new NextResponse('Not Found', {
         status: 404,
         headers: {
@@ -41,8 +40,13 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'hackifypro_secret_session_key_2026';
-  const ADMIN_SECRET_SLUG = (process.env.ADMIN_SECRET_SLUG || 'hp-portal-2026').replace(/^\//, '');
+  const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || '';
+  const configuredSlug = (process.env.ADMIN_SECRET_SLUG || '').trim().replace(/^\/+|\/+$/g, '');
+  const allowedAdminSlugs = new Set<string>(['5659']);
+  if (configuredSlug) {
+    allowedAdminSlugs.add(configuredSlug);
+  }
+  const cleanPathname = pathname.replace(/^\/+|\/+$/g, '');
 
   const gatePassCookie = req.cookies.get('hp_gate_pass')?.value;
   const adminAuthCookie = req.cookies.get('hp_admin_auth')?.value;
@@ -52,44 +56,57 @@ export function middleware(req: NextRequest) {
   const hasGatePass = gatePassCookie === 'authorized';
   const hasAdminSession = Boolean(adminAuthCookie && adminAuthCookie.length > 20);
   const hasAuthHeader = Boolean(authHeader && authHeader.startsWith('Bearer '));
-  const hasValidPasskey = Boolean(passkeyParam && passkeyParam === ADMIN_SECRET_KEY);
+  const hasValidPasskey = Boolean(ADMIN_SECRET_KEY && passkeyParam && passkeyParam === ADMIN_SECRET_KEY);
 
-  // 2. Secret Slug Entry Point (e.g. /hp-portal-2026)
-  if (pathname === `/${ADMIN_SECRET_SLUG}` || pathname === `/${ADMIN_SECRET_SLUG}/`) {
-    // Authorized via secret slug! Rewrite to /admin and set gatepass cookie
+  // 2. Secret Slug Entry Point (/5659)
+  if (allowedAdminSlugs.has(cleanPathname)) {
     const url = req.nextUrl.clone();
     url.pathname = '/admin';
 
     const res = NextResponse.rewrite(url);
     res.cookies.set('hp_gate_pass', 'authorized', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
+      partitioned: true,
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     });
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
 
     return res;
   }
 
-  // 3. Direct /admin Route Access (Allow direct navigation to admin login page)
+  // 3. Cloak direct /admin access unless arriving via /5659 gatepass, valid passkey, or active session
   if (pathname === '/admin' || pathname === '/admin/') {
-    return NextResponse.next();
+    if (hasGatePass || hasAdminSession || hasValidPasskey) {
+      const res = NextResponse.next();
+      res.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+      return res;
+    }
+    return new NextResponse('Not Found', {
+      status: 404,
+      headers: {
+        'Content-Type': 'text/plain',
+        'X-Robots-Tag': 'noindex, nofollow, noarchive',
+      },
+    });
   }
 
   // 4. Protect /api/admin/* routes from unauthenticated scanners
   if (pathname.startsWith('/api/admin')) {
-    // If public login/unlock or has valid authorization, let through to API route
     if (hasGatePass || hasAdminSession || hasAuthHeader) {
       return NextResponse.next();
     }
 
-    // Allow login and emergency unlock endpoints so admin can sign in
-    if (pathname === '/api/admin/login' || pathname === '/api/admin/unlock') {
+    if (
+      pathname === '/api/admin/login' ||
+      pathname === '/api/admin/unlock' ||
+      pathname === '/api/admin/session'
+    ) {
       return NextResponse.next();
     }
 
-    // All other /api/admin/* endpoints: return 404 if accessed by unknown scanners
     return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
   }
 
@@ -97,7 +114,6 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Run middleware on all paths except static assets and image optimization
   matcher: [
     '/((?!_next/static|_next/image|assets/|favicon.ico).*)',
   ],

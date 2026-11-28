@@ -5,10 +5,11 @@ import { authenticateAdminRequest, sanitizeCsvCell } from '@/lib/security';
 export async function GET(req: NextRequest) {
   try {
     // 1. Mandatory Admin Authentication
-    if (!authenticateAdminRequest(req)) {
+    const auth = authenticateAdminRequest(req, 'export_data');
+    if (!auth.authenticated) {
       return NextResponse.json(
-        { error: 'Unauthorized. Admin session required.' },
-        { status: 401 }
+        { error: auth.error || 'Unauthorized. Admin session required.' },
+        { status: auth.status || 401 }
       );
     }
 

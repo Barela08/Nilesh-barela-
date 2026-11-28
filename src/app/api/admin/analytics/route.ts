@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbAnalytics } from '@/lib/db';
-import { verifyAdminSessionToken } from '@/lib/security';
+import { authenticateAdminRequest } from '@/lib/security';
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized: Missing admin session token' }, { status: 401 });
-    }
-
-    const verification = verifyAdminSessionToken(token);
-    if (!verification.valid) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid or expired session' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'view_analytics');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
 
     const { searchParams } = new URL(req.url);

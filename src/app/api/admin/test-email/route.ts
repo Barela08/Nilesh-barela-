@@ -5,10 +5,11 @@ import { authenticateAdminRequest } from '@/lib/security';
 export async function POST(req: NextRequest) {
   try {
     // 1. Mandatory Admin Authentication
-    if (!authenticateAdminRequest(req)) {
+    const auth = authenticateAdminRequest(req, 'manage_security');
+    if (!auth.authenticated) {
       return NextResponse.json(
-        { error: 'Unauthorized. Admin credentials required to send test emails.' },
-        { status: 401 }
+        { error: auth.error || 'Unauthorized. Admin credentials required to send test emails.' },
+        { status: auth.status || 401 }
       );
     }
 

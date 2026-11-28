@@ -23,7 +23,8 @@ import {
   FileText,
   Layers,
   Code2,
-  ExternalLink
+  ExternalLink,
+  Github
 } from 'lucide-react';
 import { servicesData } from '@/data/services';
 import { productsData } from '@/data/products';
@@ -455,14 +456,14 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {portfolioProjects.map((p) => (
               <div 
                 key={p.id}
                 className="rounded-2xl bg-[#0F1624] border border-[#1E293B] overflow-hidden hover:border-[#00E676]/50 transition-all flex flex-col justify-between group"
               >
                 <div>
-                  <div className="relative h-48 w-full bg-[#080B12] overflow-hidden">
+                  <Link href={`/portfolio/${p.slug}`} className="block relative h-48 w-full bg-[#080B12] overflow-hidden">
                     {p.image && /\.(mp4|webm|mov|mkv|ogg)(\?.*)?$/i.test(p.image) ? (
                       <video
                         src={p.image}
@@ -477,17 +478,20 @@ export default function HomePage() {
                         src={p.image}
                         alt={p.title}
                         fill
+                        referrerPolicy="no-referrer"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     )}
                     <div className="absolute top-3 left-3 bg-[#080B12]/80 backdrop-blur-md px-2.5 py-1 rounded text-[11px] font-mono text-[#00E676]">
                       {p.category}
                     </div>
-                  </div>
+                  </Link>
 
                   <div className="p-6">
                     <h3 className="text-lg font-heading font-bold text-white group-hover:text-[#00E676] transition-colors">
-                      {p.title}
+                      <Link href={`/portfolio/${p.slug}`}>
+                        {p.title}
+                      </Link>
                     </h3>
 
                     <p className="text-xs text-[#9AA3B8] mt-2 leading-relaxed">
@@ -510,35 +514,48 @@ export default function HomePage() {
                 </div>
 
                 <div className="p-6 pt-0">
-                  <div className="pt-4 border-t border-[#1E293B] flex items-center justify-between">
-                    <span className="text-xs font-mono text-[#00E676]">{p.status}</span>
-                    {p.demoUrl && p.demoUrl.startsWith('http') ? (
-                      <a
-                        href={p.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-mono text-[#00E676] hover:underline flex items-center"
-                      >
-                        <span>Live Demo</span>
-                        <ExternalLink className="w-3.5 h-3.5 ml-1" />
-                      </a>
-                    ) : p.demoUrl ? (
-                      <Link
-                        href={p.demoUrl}
-                        className="text-xs font-mono text-white hover:text-[#00E676] flex items-center"
-                      >
-                        <span>Demo & Scope</span>
-                        <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                      </Link>
-                    ) : (
-                      <Link
-                        href="/appointment"
-                        className="text-xs font-mono text-white hover:text-[#00E676] flex items-center"
-                      >
-                        <span>Schedule Demo</span>
-                        <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                      </Link>
-                    )}
+                  <div className="pt-4 border-t border-[#1E293B] flex items-center justify-between gap-2 flex-wrap">
+                    <Link
+                      href={`/portfolio/${p.slug}`}
+                      className="text-xs font-mono text-[#00E676] hover:underline flex items-center font-semibold"
+                    >
+                      <span>Case Study</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Link>
+
+                    <div className="flex items-center space-x-3">
+                      {p.demoUrl && p.demoUrl.startsWith('http') ? (
+                        <a
+                          href={p.demoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-mono text-[#38BDF8] hover:underline flex items-center"
+                        >
+                          <span>Live Site</span>
+                          <ExternalLink className="w-3 h-3 ml-1" />
+                        </a>
+                      ) : p.demoUrl ? (
+                        <Link
+                          href={p.demoUrl}
+                          className="text-xs font-mono text-[#38BDF8] hover:underline flex items-center"
+                        >
+                          <span>Product</span>
+                          <ArrowRight className="w-3 h-3 ml-1" />
+                        </Link>
+                      ) : null}
+
+                      {p.githubUrl && (
+                        <a
+                          href={p.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${p.title} GitHub repository`}
+                          className="text-[#9AA3B8] hover:text-white transition-colors"
+                        >
+                          <Github className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

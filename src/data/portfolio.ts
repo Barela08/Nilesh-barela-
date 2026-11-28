@@ -64,44 +64,248 @@ export const portfolioProjects: PortfolioProject[] = [
     slug: "hospital-management-system",
     title: "HackifyPro Hospital Management System (HMS)",
     category: "HealthTech & Web Applications",
-    summary: "An integrated healthcare operations and clinical records platform managing OPD/IPD workflows, doctor scheduling, electronic medical records, laboratory orders, and centralized billing.",
+    summary: "An integrated healthcare operations and clinical records platform managing OPD/IPD workflows, doctor scheduling, electronic medical records, laboratory orders, and centralized pharmacy billing.",
     client: "Healthcare Clinics & Nursing Homes",
     market: "Maharashtra, India",
     problemSolved: "Clinics and nursing homes struggled with misplaced physical case files, slow OPD registration queues, disconnected pharmacy billing, and lack of real-time bed occupancy visibility.",
     mainFeatures: [
-      "Digital Patient EMR with historical diagnosis and prescription records.",
-      "Live doctor OPD queue token system reducing reception bottlenecks.",
+      "Digital Patient EMR with historical diagnosis, vitals, and prescription records.",
+      "Live doctor OPD queue token system reducing reception bottlenecks by 60%.",
       "IPD bed allocation, daily nursing logs, and automated room tariff calculation.",
-      "Integrated pharmacy dispensing and laboratory report management.",
-      "Single-invoice settlement compiling consultations, lab tests, and medications."
+      "Integrated pharmacy dispensing, batch expiry alerts, and lab report uploads.",
+      "Single-invoice GST settlement compiling consultations, lab tests, and medications."
     ],
-    techStack: ["React", "TypeScript", "FastAPI (Python)", "SQLite / PostgreSQL", "Tailwind CSS"],
+    techStack: ["React", "Next.js", "TypeScript", "FastAPI (Python)", "PostgreSQL", "Tailwind CSS"],
     image: "/assets/hackifypro-workspace.png",
-    demoUrl: "/appointment?service=hospital-management-software",
+    demoUrl: "/hospital-management-software",
     hasDemo: true,
     status: "Live & Deployed Demonstration",
     projectType: "Full-Stack Web ERP",
     targetAudience: "Clinics, Hospitals & Healthcare Providers",
     visibility: "published",
     featured: true,
+    completionDate: "2026-10-15",
+    location: "Nashik, Maharashtra",
     displayOrder: 1,
-    viewsCount: 142,
+    viewsCount: 248,
     gallery: [
       { id: "img-1", url: "/assets/hackifypro-workspace.png", alt: "HMS Dashboard View", caption: "Doctor & OPD Queue Management Overview", order: 1 },
       { id: "img-2", url: "/assets/hackifypro-office.png", alt: "Billing & Pharmacy Module", caption: "Integrated Pharmacy & Multi-Service Billing", order: 2 }
     ],
-    videos: [
-      { id: "vid-1", title: "HMS Walkthrough & Architecture", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", type: "youtube", order: 1, position: "after" }
-    ],
+    videos: [],
     githubUrl: "https://github.com/Barela08",
+    externalUrls: [
+      { label: "Full HMS Product Specs", url: "/hospital-management-software" },
+      { label: "Book Live HMS Demo", url: "/appointment?service=hospital-management-software" }
+    ],
     createdAt: "2026-10-15T10:00:00.000Z"
   },
   {
     id: "proj-2",
+    slug: "dineflow-restaurant-pos",
+    title: "DineFlow POS – Restaurant & Cloud Kitchen Management Suite",
+    category: "Hospitality & POS Software",
+    summary: "All-in-one restaurant billing POS featuring contactless QR table ordering, live Kitchen Display System (KDS), recipe-level stock deduction, multi-outlet menu sync, and instant GST thermal receipts.",
+    client: "Fine-Dining Restaurants, Cafes & Cloud Kitchens",
+    market: "Nashik, Pune & Pan-India",
+    problemSolved: "Restaurants faced delayed KOT handoffs between waiters and kitchens, billing errors during weekend rush hours, untracked raw ingredient wastage, and zero real-time visibility into table turnover.",
+    mainFeatures: [
+      "Interactive table floor-plan with live occupied, reserved, and billing states.",
+      "Zero-latency Kitchen Display System (KDS) with prep-time timers and KOT routing.",
+      "Contactless QR code table ordering directly synced to the cashier POS terminal.",
+      "Automated raw material & recipe inventory deduction with low-stock alerts.",
+      "GST-compliant 80mm thermal billing with UPI QR, split-bill, and Z-report closing."
+    ],
+    techStack: ["Next.js 15", "React 19", "TypeScript", "Node.js API", "PostgreSQL", "Tailwind CSS"],
+    image: "/assets/project-restaurant-pos.jpg",
+    demoUrl: "/restaurant-management-software",
+    hasDemo: true,
+    status: "Live & Demonstration Ready",
+    projectType: "Cloud POS & KDS Platform",
+    targetAudience: "Restaurants, Cafes, Food Courts & Cloud Kitchens",
+    visibility: "published",
+    featured: true,
+    completionDate: "2026-11-05",
+    location: "Nashik, Maharashtra",
+    displayOrder: 2,
+    viewsCount: 196,
+    gallery: [
+      { id: "img-pos-1", url: "/assets/project-restaurant-pos.jpg", alt: "DineFlow POS Live Terminal", caption: "Table Floor Map, Live KOT Tickets & GST Billing Console", order: 1 }
+    ],
+    videos: [],
+    githubUrl: "https://github.com/Barela08",
+    externalUrls: [
+      { label: "Restaurant POS Product Page", url: "/restaurant-management-software" },
+      { label: "Schedule POS Demo", url: "/appointment?service=restaurant-management-software" }
+    ],
+    createdAt: "2026-11-05T11:30:00.000Z"
+  },
+  {
+    id: "proj-3",
+    slug: "self-driving-car-rental-erp",
+    title: "HackifyPro Self-Driving Car ERP & Fleet Management System",
+    category: "Automotive & Fleet ERP",
+    summary: "Full-stack automotive enterprise resource planning system engineered for self-drive operators and car rental agencies. Integrates automated vehicle scheduling, digital KYC verification, dynamic rental agreements, and security deposit tracking.",
+    client: "Self-Drive Fleet Operators & Car Rental Agencies",
+    market: "Maharashtra & Pan-India",
+    problemSolved: "Self-drive car rental businesses struggled with double-booking conflicts, fraudulent document submissions, paper agreements, untracked fuel/meter readings at handover, and chaotic deposit refund disputes.",
+    mainFeatures: [
+      "Instant Driving License & Aadhaar KYC identity verification workflow.",
+      "Visual Fleet Availability Matrix preventing overlap and tracking return schedules.",
+      "Automated digital rental contract generation with fuel & odometer handover photos.",
+      "Dedicated security deposit lifecycle tracking with FASTag/damage deduction logs.",
+      "Scheduled fleet maintenance alerts and vehicle-wise ROI profitability analytics."
+    ],
+    techStack: ["Next.js 15", "React 19", "TypeScript", "Firebase Firestore", "Node.js API", "Tailwind CSS"],
+    image: "/assets/project-car-rental.jpg",
+    demoUrl: "/car-rental-software",
+    hasDemo: true,
+    status: "Live & Demonstration Ready",
+    projectType: "Automotive Enterprise ERP",
+    targetAudience: "Self-Drive Operators, Fleet Owners & Car Rental Businesses",
+    visibility: "published",
+    featured: true,
+    completionDate: "2026-11-12",
+    location: "Maharashtra, India",
+    displayOrder: 3,
+    viewsCount: 274,
+    gallery: [
+      { id: "img-car-1", url: "/assets/project-car-rental.jpg", alt: "Self Driving Car ERP Dashboard", caption: "Fleet Availability Matrix & KYC Verification Console", order: 1 }
+    ],
+    videos: [],
+    githubUrl: "https://github.com/Barela08",
+    externalUrls: [
+      { label: "Car Rental ERP Specs", url: "/car-rental-software" },
+      { label: "Book Fleet ERP Demo", url: "/appointment?service=car-rental-software" }
+    ],
+    createdAt: "2026-11-12T10:00:00.000Z"
+  },
+  {
+    id: "proj-4",
+    slug: "fitpulse-gym-management",
+    title: "FitPulse Pro – Gym & Fitness Club Management SaaS",
+    category: "Fitness & Subscription SaaS",
+    summary: "Cloud-native fitness center management platform with biometric/QR attendance check-in, automated WhatsApp membership renewal reminders, personal trainer batch scheduling, and monthly revenue dashboards.",
+    client: "Gyms, CrossFit Studios & Fitness Chains",
+    market: "Maharashtra & India",
+    problemSolved: "Gym owners lost 20-30% of recurring revenue from forgotten fee renewals, expired members continuing access unchecked, and manual Excel tracking for personal training sessions and supplement sales.",
+    mainFeatures: [
+      "Real-time QR / Biometric check-in gate flagging expired or due memberships instantly.",
+      "Automated WhatsApp & SMS renewal reminders sent 7 days, 3 days, and 1 day before expiry.",
+      "Flexible plan builder supporting monthly, quarterly, annual, and freeze periods.",
+      "Personal trainer assignment, batch occupancy tracking, and custom workout/diet PDFs.",
+      "Owner financial dashboard tracking MRR, pending dues, expenses, and renewal rates."
+    ],
+    techStack: ["Next.js 15", "TypeScript", "Tailwind CSS", "Node.js", "WhatsApp Cloud API", "PostgreSQL"],
+    image: "/assets/project-gym-saas.jpg",
+    demoUrl: "/gym-management-software",
+    hasDemo: true,
+    status: "Live & Deployed Demonstration",
+    projectType: "Subscription SaaS Platform",
+    targetAudience: "Gym Owners, Fitness Studios & Health Clubs",
+    visibility: "published",
+    featured: true,
+    completionDate: "2026-11-16",
+    location: "Nashik, Maharashtra",
+    displayOrder: 4,
+    viewsCount: 183,
+    gallery: [
+      { id: "img-gym-1", url: "/assets/project-gym-saas.jpg", alt: "FitPulse Pro Gym Dashboard", caption: "Live Member Check-Ins, Renewal Countdown & MRR Analytics", order: 1 }
+    ],
+    videos: [],
+    githubUrl: "https://github.com/Barela08",
+    externalUrls: [
+      { label: "Gym Software Details", url: "/gym-management-software" },
+      { label: "Book Live Walkthrough", url: "/appointment?service=gym-management-software" }
+    ],
+    createdAt: "2026-11-16T09:15:00.000Z"
+  },
+  {
+    id: "proj-5",
+    slug: "shopswift-android-commerce",
+    title: "ShopSwift Android – Hyperlocal Retail & Delivery App",
+    category: "Android Mobile App",
+    summary: "Native Kotlin Android mobile commerce and hyperlocal delivery suite for supermarkets, pharmacies, and local distributors with instant UPI checkout, live rider GPS tracking, and push offers.",
+    client: "Retail Supermarkets, Pharmacies & Local Distributors",
+    market: "Nashik, Mumbai & Tier-2 Cities",
+    problemSolved: "Local retailers lost repeat customers to aggregator apps charging 25% commissions and lacked their own branded Play Store app for direct recurring neighborhood deliveries.",
+    mainFeatures: [
+      "Zero-commission branded Android app built in Kotlin with Material 3 dark/light UI.",
+      "Fast barcode/SKU search, smart cart suggestions, and one-tap UPI intent payments.",
+      "Dedicated delivery partner mode with live route navigation and OTP proof-of-delivery.",
+      "Firebase Cloud Messaging push notifications for flash sales and order status updates.",
+      "Web admin panel synced in real time for inventory pricing, coupons, and dispatch."
+    ],
+    techStack: ["Kotlin", "Android Jetpack Compose", "Firebase", "Next.js Admin", "REST API", "Razorpay / UPI"],
+    image: "/assets/project-android-app.jpg",
+    demoUrl: "/android-app-development",
+    hasDemo: true,
+    status: "Production Ready",
+    projectType: "Native Android Application",
+    targetAudience: "Supermarkets, Medical Stores & Retail Brands",
+    visibility: "published",
+    featured: true,
+    completionDate: "2026-11-18",
+    location: "Nashik, Maharashtra",
+    displayOrder: 5,
+    viewsCount: 219,
+    gallery: [
+      { id: "img-android-1", url: "/assets/project-android-app.jpg", alt: "ShopSwift Android Mobile App Screens", caption: "Product Catalog, UPI Checkout & Live Order Delivery Tracking", order: 1 }
+    ],
+    videos: [],
+    githubUrl: "https://github.com/Barela08",
+    externalUrls: [
+      { label: "Android Development Capabilities", url: "/android-app-development" },
+      { label: "Get Mobile App Quote", url: "/request-quote?service=android-app-development" }
+    ],
+    createdAt: "2026-11-18T14:20:00.000Z"
+  },
+  {
+    id: "proj-6",
+    slug: "hackifypro-commercial-platform",
+    title: "HackifyPro High-Performance Web Ecosystem & Admin CMS",
+    category: "Web Engineering & SEO",
+    summary: "The official production website ecosystem for HackifyPro, featuring automated lead capture, real-time visitor intelligence, Google Ads conversion tracking, rich Schema.org JSON-LD, and a custom Zero-Trust Admin CRM.",
+    client: "HackifyPro",
+    market: "Nashik, Maharashtra & Global",
+    problemSolved: "Bridging the gap between software development commercial services and technical education identity while delivering sub-second load times and zero-friction client conversion.",
+    mainFeatures: [
+      "Sub-second Core Web Vitals performance with server-rendered React 19 & Next.js 15.",
+      "Automated appointment booking, lead qualification, and rate-limited anti-bot forms.",
+      "Duplicate-prevention Google Ads and GA4 conversion tracking architecture.",
+      "Rich JSON-LD schemas for Organization, Founder, Services, and Software Products.",
+      "Integrated secure Admin Control Center with project CMS, media queue, and CSV export."
+    ],
+    techStack: ["Next.js 15", "React 19", "TypeScript", "Tailwind CSS", "Node.js API", "Firebase"],
+    image: "/assets/hackifypro-storefront.png",
+    demoUrl: "https://www.nileshbarela.site",
+    hasDemo: true,
+    status: "Live Production Site",
+    projectType: "Corporate Platform & CMS",
+    targetAudience: "Enterprises, SMEs & Local Businesses",
+    visibility: "published",
+    featured: true,
+    completionDate: "2026-11-22",
+    location: "Nashik, Maharashtra",
+    displayOrder: 6,
+    viewsCount: 368,
+    gallery: [
+      { id: "img-4", url: "/assets/hackifypro-storefront.png", alt: "Storefront UI", caption: "Production Responsive Storefront", order: 1 }
+    ],
+    videos: [],
+    githubUrl: "https://github.com/Barela08/Nilesh-barela-",
+    externalUrls: [
+      { label: "Visit Live Production Site", url: "https://www.nileshbarela.site" },
+      { label: "View GitHub Repository", url: "https://github.com/Barela08/Nilesh-barela-" }
+    ],
+    createdAt: "2026-11-01T08:00:00.000Z"
+  },
+  {
+    id: "proj-7",
     slug: "leadsaathi-pro",
     title: "LeadSaathi PRO – Local Business Discovery & Outreach Suite",
     category: "Business Automation & CRM",
-    summary: "Full-stack prospecting and pipeline automation application empowering digital agencies to identify local businesses lacking websites and manage compliant WhatsApp outreach.",
+    summary: "Full-stack prospecting and pipeline automation application empowering digital agencies to identify local businesses lacking websites and manage compliant Meta WhatsApp outreach.",
     client: "Digital Agencies & Freelance Developers",
     market: "India",
     problemSolved: "Agencies spent hours manually scouring search engines for local businesses, tracking outreach on chaotic spreadsheets, and facing phone number bans from unapproved scraping scripts.",
@@ -114,87 +318,66 @@ export const portfolioProjects: PortfolioProject[] = [
     ],
     techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Node.js", "Meta Cloud API", "Google Gemini AI"],
     image: "/assets/hackifypro-office.png",
-    demoUrl: "/appointment?service=business-automation",
+    demoUrl: "/business-automation",
     hasDemo: true,
     status: "Functional Internal System",
     projectType: "SaaS & Outreach Platform",
     targetAudience: "Agencies, Freelancers & Sales Teams",
     visibility: "published",
-    featured: true,
-    displayOrder: 2,
-    viewsCount: 98,
+    featured: false,
+    completionDate: "2026-10-28",
+    location: "Maharashtra, India",
+    displayOrder: 7,
+    viewsCount: 154,
     gallery: [
       { id: "img-3", url: "/assets/hackifypro-office.png", alt: "LeadSaathi Dashboard", caption: "Lead Discovery & Meta Cloud API CRM", order: 1 }
     ],
+    videos: [],
     githubUrl: "https://github.com/Barela08",
+    externalUrls: [
+      { label: "Business Automation Services", url: "/business-automation" },
+      { label: "Request Custom CRM", url: "/request-quote?service=business-automation" }
+    ],
     createdAt: "2026-10-28T14:30:00.000Z"
   },
   {
-    id: "proj-3",
-    slug: "hackifypro-commercial-platform",
-    title: "HackifyPro High-Performance Web Ecosystem",
-    category: "Web Engineering & SEO",
-    summary: "The official production website ecosystem for HackifyPro, featuring automated lead capture, Google Ads conversion tracking, and comprehensive Schema.org structured data.",
-    client: "HackifyPro",
-    market: "Nashik, Maharashtra & Global",
-    problemSolved: "Bridging the gap between software development commercial services and technical education identity while delivering sub-second load times and zero-friction client conversion.",
+    id: "proj-8",
+    slug: "drivetrack-driving-school-erp",
+    title: "DriveTrack RTO – Motor Driving School Management ERP",
+    category: "EdTech & Operations ERP",
+    summary: "Specialized operations platform for motor driving schools managing learner admissions, LLR/DL RTO application milestones, practical driving slot allocation, instructor daily rosters, and fee installments.",
+    client: "Motor Training Schools & RTO Consultants",
+    market: "Nashik, Pune & Maharashtra",
+    problemSolved: "Driving schools relied on paper registers for 21-day practical attendance, frequently missed student RTO test slot dates, and had no visibility into trainer vehicle utilization or pending fee balances.",
     mainFeatures: [
-      "Sub-second Core Web Vitals performance with server-rendered React & Next.js.",
-      "Automated appointment booking, lead qualification, and instant rate-limited forms.",
-      "Duplicate-prevention Google Ads and GA4 conversion tracking architecture.",
-      "Rich JSON-LD schemas for Organization, Founder, Services, and Software Products.",
-      "Integrated secure admin dashboard with status management and authorized CSV export."
+      "Student admission portal storing Aadhaar, learner license (LLR), and RTO file numbers.",
+      "Automated 21-day practical driving slot scheduler assigned by vehicle & instructor.",
+      "WhatsApp alerts for daily pickup slots, pending fee installments, and RTO test dates.",
+      "Trainer attendance sign-off and vehicle fuel/servicing expense ledger.",
+      "One-click fee receipt PDF generator with branch-wise revenue reporting."
     ],
-    techStack: ["Next.js 15", "React 19", "TypeScript", "Tailwind CSS", "Node.js API", "JSON Database"],
-    image: "/assets/hackifypro-storefront.png",
-    demoUrl: "https://www.nileshbarela.site",
-    hasDemo: true,
-    status: "Production Ready",
-    projectType: "Corporate Platform",
-    targetAudience: "Enterprises, SMEs & Local Businesses",
-    visibility: "published",
-    featured: true,
-    displayOrder: 3,
-    viewsCount: 312,
-    gallery: [
-      { id: "img-4", url: "/assets/hackifypro-storefront.png", alt: "Storefront UI", caption: "Production Responsive Storefront", order: 1 }
-    ],
-    githubUrl: "https://github.com/Barela08/Nilesh-barela-",
-    createdAt: "2026-11-01T08:00:00.000Z"
-  },
-  {
-    id: "proj-4",
-    slug: "self-driving-car-rental-erp",
-    title: "HackifyPro Self-Driving Car ERP & Fleet Management System",
-    category: "Automotive & Fleet ERP",
-    summary: "Full-stack automotive enterprise resource planning system engineered for self-drive operators and car rental agencies. Integrates automated vehicle scheduling, digital KYC identity verification, dynamic rental agreements, and security deposit management.",
-    client: "Self-Drive Fleet Operators & Car Rental Agencies",
-    market: "Maharashtra & Pan-India",
-    problemSolved: "Self-drive car rental businesses struggled with double-booking conflicts, fraudulent document submissions, paper agreements, untracked fuel/meter readings at handover, and chaotic deposit refund disputes.",
-    mainFeatures: [
-      "Instant Driving License & Aadhaar KYC identity verification engine.",
-      "Visual Fleet Availability Matrix preventing overlap and tracking return schedules.",
-      "Automated digital rental contract generation with fuel & odometer handover logs.",
-      "Dedicated security deposit lifecycle tracking with damage/toll deduction logs.",
-      "Scheduled fleet maintenance alerts and vehicle-wise profitability analytics.",
-      "SMS & WhatsApp booking confirmation and trip completion alerts."
-    ],
-    techStack: ["Next.js 15", "React 19", "TypeScript", "Firebase Firestore", "Node.js API", "Tailwind CSS"],
+    techStack: ["Next.js", "React", "TypeScript", "Node.js API", "Tailwind CSS", "PostgreSQL"],
     image: "/assets/hackifypro-workspace.png",
-    demoUrl: "/car-rental-software",
+    demoUrl: "/driving-school-software",
     hasDemo: true,
-    status: "Live & Demonstration Ready",
-    projectType: "Automotive Enterprise ERP",
-    targetAudience: "Self-Drive Operators, Fleet Owners & Car Rental Businesses",
+    status: "Deployable Solution",
+    projectType: "Vertical SaaS ERP",
+    targetAudience: "Motor Driving Schools & Training Academies",
     visibility: "published",
-    featured: true,
-    displayOrder: 4,
-    viewsCount: 210,
+    featured: false,
+    completionDate: "2026-11-24",
+    location: "Nashik, Maharashtra",
+    displayOrder: 8,
+    viewsCount: 129,
     gallery: [
-      { id: "img-car-1", url: "/assets/hackifypro-workspace.png", alt: "Self Driving Car ERP Dashboard", caption: "Fleet Availability & Real-Time Booking Console", order: 1 }
+      { id: "img-drive-1", url: "/assets/hackifypro-workspace.png", alt: "DriveTrack RTO ERP Console", caption: "Student Batching & Practical Slot Scheduler", order: 1 }
     ],
     videos: [],
     githubUrl: "https://github.com/Barela08",
-    createdAt: "2026-11-20T10:00:00.000Z"
+    externalUrls: [
+      { label: "Driving School Software Page", url: "/driving-school-software" },
+      { label: "Book Live Demo", url: "/appointment?service=driving-school-software" }
+    ],
+    createdAt: "2026-11-24T12:00:00.000Z"
   }
 ];

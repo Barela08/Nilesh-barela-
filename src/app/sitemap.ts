@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { servicesData } from '@/data/services';
 import { productsData } from '@/data/products';
 import { blogPosts } from '@/data/blog';
+import { dbProjects } from '@/lib/db';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.nileshbarela.site';
@@ -44,6 +45,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
+  // Portfolio case study pages
+  const portfolioRoutes: MetadataRoute.Sitemap = dbProjects.getPublished().map((proj) => ({
+    url: `${baseUrl}/portfolio/${proj.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
   // Blog posts
   const blogRoutes: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
@@ -52,5 +61,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.75,
   }));
 
-  return [...staticRoutes, ...serviceRoutes, ...productRoutes, ...blogRoutes];
+  return [...staticRoutes, ...serviceRoutes, ...productRoutes, ...portfolioRoutes, ...blogRoutes];
 }

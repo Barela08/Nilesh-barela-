@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbMedia, dbAdminActivity } from '@/lib/db';
-import { verifyAdminSessionToken, cleanText } from '@/lib/security';
+import { authenticateAdminRequest, cleanText } from '@/lib/security';
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
-
-    if (!token || !verifyAdminSessionToken(token).valid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = authenticateAdminRequest(req);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -43,12 +41,9 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
-    const authCheck = verifyAdminSessionToken(token || '');
-
-    if (!token || !authCheck.valid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_media');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -72,7 +67,7 @@ export async function PATCH(req: NextRequest) {
       targetType: 'media',
       targetId: id,
       description: `Updated metadata for media: ${updated.filename}`,
-      adminEmail: authCheck.email || 'admin@hackifypro.com',
+      adminEmail: auth.user?.email || 'admin@hackifypro.com',
     });
 
     return NextResponse.json({ success: true, media: updated });
@@ -84,12 +79,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
-    const authCheck = verifyAdminSessionToken(token || '');
-
-    if (!token || !authCheck.valid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_media');
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -125,7 +117,7 @@ export async function DELETE(req: NextRequest) {
       targetType: 'media',
       targetId: id,
       description: `Deleted media file: ${item.filename} (${item.url})`,
-      adminEmail: authCheck.email || 'admin@hackifypro.com',
+      adminEmail: auth.user?.email || 'admin@hackifypro.com',
     });
 
     return NextResponse.json({ success: true, message: 'Media successfully deleted' });

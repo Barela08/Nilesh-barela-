@@ -4,7 +4,16 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import { NextRequest } from 'next/server';
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET_KEY || 'hackifypro_secret_session_key_2026';
+const globalForSecret = globalThis as unknown as { __hpSessionSecret?: string };
+function getSessionSecret(): string {
+  if (process.env.ADMIN_SECRET_KEY && process.env.ADMIN_SECRET_KEY.trim().length > 0) {
+    return process.env.ADMIN_SECRET_KEY.trim();
+  }
+  if (!globalForSecret.__hpSessionSecret) {
+    globalForSecret.__hpSessionSecret = crypto.randomBytes(32).toString('hex');
+  }
+  return globalForSecret.__hpSessionSecret;
+}
 const DATA_DIR = path.join(process.cwd(), 'data');
 
 if (!fs.existsSync(DATA_DIR)) {
@@ -99,22 +108,23 @@ export function getAdminUsers(): AdminUser[] {
   try {
     const filePath = getUsersFilePath();
     if (!fs.existsSync(filePath)) {
-      // Seed default owner with hashed password
-      const defaultPass = process.env.ADMIN_PASSWORD || 'HackifyPro@2026!';
-      const salt = bcrypt.genSaltSync(12);
-      const defaultHash = bcrypt.hashSync(defaultPass, salt);
-      const initialUsers: AdminUser[] = [
-        {
-          id: 'usr-owner-01',
-          email: (process.env.ADMIN_EMAIL || 'hackifypro@gmail.com').toLowerCase(),
-          role: 'owner',
-          passwordHash: defaultHash,
-          name: 'Nilesh Barela (Owner)',
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      fs.writeFileSync(filePath, JSON.stringify(initialUsers, null, 2), 'utf-8');
-      return initialUsers;
+      if (process.env.ADMIN_PASSWORD) {
+        const salt = bcrypt.genSaltSync(12);
+        const defaultHash = bcrypt.hashSync(process.env.ADMIN_PASSWORD, salt);
+        const initialUsers: AdminUser[] = [
+          {
+            id: 'usr-owner-01',
+            email: (process.env.ADMIN_EMAIL || 'hackifypro@gmail.com').toLowerCase(),
+            role: 'owner',
+            passwordHash: defaultHash,
+            name: 'Nilesh Barela (Owner)',
+            createdAt: new Date().toISOString(),
+          },
+        ];
+        fs.writeFileSync(filePath, JSON.stringify(initialUsers, null, 2), 'utf-8');
+        return initialUsers;
+      }
+      return [];
     }
     const raw = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(raw);
@@ -179,7 +189,7 @@ export function generateAdminSessionToken(
   ).toString('base64url');
 
   const signature = crypto
-    .createHmac('sha256', ADMIN_SECRET)
+    .createHmac('sha256', getSessionSecret())
     .update(payload)
     .digest('base64url');
 
@@ -203,7 +213,7 @@ export function verifyAdminSessionToken(token: string): {
 
   const [payload, signature] = parts;
   const expectedSig = crypto
-    .createHmac('sha256', ADMIN_SECRET)
+    .createHmac('sha256', getSessionSecret())
     .update(payload)
     .digest('base64url');
 
@@ -240,10 +250,32 @@ export function authenticateAdminRequest(
   req: NextRequest,
   requiredPermission?: string
 ): { authenticated: boolean; user?: { email: string; role: AdminRole; sessionId?: string }; error?: string; status?: number } {
-  const token = req.cookies.get('hp_admin_auth')?.value || req.headers.get('authorization')?.replace('Bearer ', '');
+  const bearerHeader = req.headers.get('authorization');
+  const bearerToken = bearerHeader?.startsWith('Bearer ') ? bearerHeader.slice(7).trim() : '';
+  const cookieToken = req.cookies.get('hp_admin_auth')?.value || '';
+  const token = bearerToken || cookieToken;
 
   if (!token) {
     return { authenticated: false, error: 'Unauthorized: Missing session token', status: 401 };
+  }
+
+  // CSRF check for mutating requests authenticated solely via cookie
+  const method = req.method.toUpperCase();
+  if (!bearerToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    const xRequestedWith = req.headers.get('x-requested-with');
+    const origin = req.headers.get('origin');
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
+    let originMatchesHost = false;
+    if (origin && host) {
+      try {
+        originMatchesHost = new URL(origin).host === host;
+      } catch {
+        originMatchesHost = false;
+      }
+    }
+    if (!xRequestedWith && !originMatchesHost) {
+      return { authenticated: false, error: 'CSRF validation failed', status: 403 };
+    }
   }
 
   const verified = verifyAdminSessionToken(token);
@@ -253,7 +285,6 @@ export function authenticateAdminRequest(
 
   const role: AdminRole = verified.role || 'owner';
 
-  // Permission check
   if (requiredPermission && !hasPermission(role, requiredPermission)) {
     return {
       authenticated: false,
@@ -267,6 +298,18 @@ export function authenticateAdminRequest(
     authenticated: true,
     user: { email: verified.email, role, sessionId: verified.sessionId },
   };
+}
+
+export function isSafeUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return true;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
 }
 
 // -------------------------------------------------------------

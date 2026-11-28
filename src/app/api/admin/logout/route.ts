@@ -30,8 +30,9 @@ export async function POST(req: NextRequest) {
 
     response.cookies.set('hp_admin_auth', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
+      partitioned: true,
       path: '/',
       maxAge: 0,
     });

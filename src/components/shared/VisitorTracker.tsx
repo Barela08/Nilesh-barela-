@@ -131,7 +131,7 @@ export default function VisitorTracker() {
     if (typeof window === 'undefined') return;
 
     // Do not track admin portal itself to keep visitor numbers pure
-    if (pathname.startsWith('/admin') || pathname.startsWith('/api')) {
+    if (pathname.startsWith('/admin') || pathname.startsWith('/5659') || pathname.startsWith('/api')) {
       return;
     }
 

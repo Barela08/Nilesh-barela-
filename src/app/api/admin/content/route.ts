@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbSiteContent, dbAdminActivity } from '@/lib/db';
-import { verifyAdminSessionToken } from '@/lib/security';
+import { authenticateAdminRequest } from '@/lib/security';
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = authenticateAdminRequest(req);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
+    }
+
     const content = dbSiteContent.get();
     return NextResponse.json({
       success: true,
@@ -17,12 +22,9 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
-    const authCheck = verifyAdminSessionToken(token || '');
-
-    if (!token || !authCheck.valid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_content');
+    if (!auth.authenticated || !auth.user) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 });
     }
 
     const body = await req.json().catch(() => null);
@@ -36,7 +38,7 @@ export async function PUT(req: NextRequest) {
       action: 'UPDATE_SITE_CONTENT',
       targetType: 'content',
       description: 'Updated website content, links, services, or section visibility',
-      adminEmail: authCheck.email || 'admin@hackifypro.com',
+      adminEmail: auth.user.email || 'admin@hackifypro.com',
     });
 
     return NextResponse.json({

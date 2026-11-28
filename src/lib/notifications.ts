@@ -211,7 +211,7 @@ export async function notifyNewLead(type: 'Appointment' | 'Enquiry' | 'Quote', d
               <tr>
                 <td style="padding: 20px 28px; background-color: #080B12; border-top: 1px solid #1E293B; text-align: center; font-size: 12px; color: #64748B;">
                   This is an automated notification from <strong style="color: #9AA3B8;">HackifyPro Web Platform</strong>.<br/>
-                  Admin CRM: <a href="https://www.nileshbarela.site/admin" style="color: #00E676; text-decoration: none;">nileshbarela.site/admin</a>
+                  Admin CRM: <a href="https://www.nileshbarela.site/5659" style="color: #00E676; text-decoration: none;">nileshbarela.site/5659</a>
                 </td>
               </tr>
 

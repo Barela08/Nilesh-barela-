@@ -228,26 +228,46 @@ export default function AdminDashboardPage() {
   const [emailTesting, setEmailTesting] = useState(false);
   const [emailTestResult, setEmailTestResult] = useState<{ success?: boolean; message?: string } | null>(null);
 
-  // Helper: Get token
-  const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('hp_admin_token') || '' : '');
-
-  // Session check on load
-  useEffect(() => {
-    const token = getToken();
-    const storedUser = localStorage.getItem('hp_admin_user');
-    if (token) {
-      setIsAuthenticated(true);
-      if (storedUser) {
-        try {
-          setCurrentUser(JSON.parse(storedUser));
-        } catch {
-          setCurrentUser({ email: 'hackifypro@gmail.com', role: 'owner' });
-        }
-      } else {
-        setCurrentUser({ email: 'hackifypro@gmail.com', role: 'owner' });
-      }
-      fetchAllAdminData();
+  // In-memory session token (never stored in localStorage/sessionStorage)
+  const tokenRef = useRef<string>('');
+  const getToken = () => tokenRef.current;
+  const getAuthHeaders = (includeJsonContentType = false): Record<string, string> => {
+    const headers: Record<string, string> = {
+      'X-Requested-With': 'XMLHttpRequest',
+    };
+    if (includeJsonContentType) {
+      headers['Content-Type'] = 'application/json';
     }
+    if (tokenRef.current) {
+      headers['Authorization'] = `Bearer ${tokenRef.current}`;
+    }
+    return headers;
+  };
+
+  // Session check on load via server-verified HttpOnly cookie
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/session', {
+          credentials: 'include',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        if (active && res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            setCurrentUser(data.user);
+            setIsAuthenticated(true);
+            fetchAllAdminData();
+          }
+        }
+      } catch {
+        // Not signed in
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Cooldown countdown timer
@@ -320,7 +340,11 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
         body: JSON.stringify({ email, password }),
       });
 
@@ -332,8 +356,7 @@ export default function AdminDashboardPage() {
         throw new Error(data.error || 'Invalid credentials');
       }
 
-      localStorage.setItem('hp_admin_token', data.token);
-      localStorage.setItem('hp_admin_user', JSON.stringify(data.user));
+      tokenRef.current = data.token || '';
       setCurrentUser(data.user);
       setIsAuthenticated(true);
       fetchAllAdminData();
@@ -349,11 +372,11 @@ export default function AdminDashboardPage() {
     try {
       await fetch('/api/admin/logout', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
     } catch {}
-    localStorage.removeItem('hp_admin_token');
-    localStorage.removeItem('hp_admin_user');
+    tokenRef.current = '';
     setIsAuthenticated(false);
     setCurrentUser(null);
   };
@@ -365,7 +388,11 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch('/api/admin/unlock', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
         body: JSON.stringify({ recoveryKey: recoveryKeyInput, identifier: email || undefined }),
       });
       const data = await res.json();
@@ -387,7 +414,8 @@ export default function AdminDashboardPage() {
   const fetchLeads = async () => {
     try {
       const res = await fetch('/api/admin/leads', {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -406,10 +434,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch('/api/admin/leads', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ type, id, ...updates }),
       });
       if (res.ok) {
@@ -427,11 +453,11 @@ export default function AdminDashboardPage() {
 
   const handleDeleteLead = async (type: string, id: string) => {
     if (!requirePermission('delete_leads', 'permanently delete leads')) return;
-    if (!confirm(`Are you sure you want to permanently delete this ${type}?`)) return;
     try {
       const res = await fetch(`/api/admin/leads?type=${type}&id=${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         fetchLeads();
@@ -448,7 +474,8 @@ export default function AdminDashboardPage() {
   const fetchProjects = async () => {
     try {
       const res = await fetch('/api/admin/projects', {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -520,9 +547,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch('/api/admin/media/upload', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(),
         body: formData,
       });
 
@@ -622,10 +648,8 @@ export default function AdminDashboardPage() {
       const method = isEditingProject ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(true),
         body: JSON.stringify(payload),
       });
 
@@ -654,7 +678,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(`/api/admin/projects?id=${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         fetchProjects();
@@ -671,10 +696,8 @@ export default function AdminDashboardPage() {
     try {
       await fetch('/api/admin/projects', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ id, visibility: nextVis }),
       });
       fetchProjects();
@@ -698,10 +721,8 @@ export default function AdminDashboardPage() {
     try {
       await fetch('/api/admin/projects', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(true),
         body: JSON.stringify({
           action: 'reorder',
           orderedIds: newProjects.map((p) => p.id),
@@ -717,7 +738,8 @@ export default function AdminDashboardPage() {
   const fetchMedia = async () => {
     try {
       const res = await fetch('/api/admin/media', {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -825,7 +847,11 @@ export default function AdminDashboardPage() {
     formData.append('file', item.file);
 
     xhr.open('POST', '/api/admin/media/upload');
-    xhr.setRequestHeader('Authorization', `Bearer ${getToken()}`);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    if (getToken()) {
+      xhr.setRequestHeader('Authorization', `Bearer ${getToken()}`);
+    }
     xhr.send(formData);
   };
 
@@ -867,7 +893,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(`/api/admin/media?id=${mediaItem.id}&force=${force}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (res.status === 409 && data.inUse) {
@@ -879,7 +906,7 @@ export default function AdminDashboardPage() {
           setSelectedMediaPreview(null);
         }
       } else {
-        alert(data.error || 'Failed to delete');
+        setProjectActionMsg({ type: 'error', text: data.error || 'Failed to delete media' });
       }
     } catch (err) {
       console.error('Delete media failed', err);
@@ -897,7 +924,8 @@ export default function AdminDashboardPage() {
     try {
       const url = `/api/admin/visitors?status=${visitorStatusFilter}&visitCount=${visitorCountFilter}&formFilter=${visitorFormFilter}&range=${visitorRangeFilter}${visitorSearch ? `&search=${encodeURIComponent(visitorSearch)}` : ''}`;
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -914,7 +942,8 @@ export default function AdminDashboardPage() {
     setAnalyticsLoading(true);
     try {
       const res = await fetch(`/api/admin/analytics?range=${range}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -931,7 +960,8 @@ export default function AdminDashboardPage() {
   const fetchSiteContent = async () => {
     try {
       const res = await fetch('/api/admin/content', {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -950,10 +980,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch('/api/admin/content', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(true),
         body: JSON.stringify(siteContent),
       });
       const data = await res.json();
@@ -961,7 +989,7 @@ export default function AdminDashboardPage() {
         setContentSaveMsg('Website settings saved & updated live!');
         setTimeout(() => setContentSaveMsg(null), 3000);
       } else {
-        alert(data.error || 'Failed to save settings');
+        setContentSaveMsg(data.error || 'Failed to save settings');
       }
     } catch (err) {
       console.error('Save site content failed', err);
@@ -974,7 +1002,8 @@ export default function AdminDashboardPage() {
   const fetchActivityLogs = async () => {
     try {
       const res = await fetch('/api/admin/activity?limit=100', {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -991,10 +1020,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch('/api/admin/test-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
+        credentials: 'include',
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ to: emailTestAddress }),
       });
       const data = await res.json();
@@ -3430,10 +3457,29 @@ export default function AdminDashboardPage() {
                 <div className="p-2 rounded-lg bg-[#080B12] border border-[#1E293B] font-mono text-[11px] text-[#A78BFA] flex items-center justify-between">
                   <span>Visitor ID: {selectedLead.visitorId.substring(0, 20)}...</span>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const v = visitorsList.find((vis) => vis.visitorId === selectedLead.visitorId);
-                      if (v) setSelectedVisitorDetail(v);
-                      else alert(`Visitor Profile ${selectedLead.visitorId}`);
+                      if (v) {
+                        setSelectedVisitorDetail(v);
+                        return;
+                      }
+                      try {
+                        const res = await fetch(
+                          `/api/admin/visitors?id=${encodeURIComponent(selectedLead.visitorId)}`,
+                          { credentials: 'include', headers: getAuthHeaders() }
+                        );
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (data.profile) {
+                            setSelectedVisitorDetail(data.profile);
+                            return;
+                          }
+                        }
+                      } catch {
+                        // Fall back to visitors tab
+                      }
+                      setSelectedLead(null);
+                      setCurrentTab('visitors');
                     }}
                     className="text-[#00E676] hover:underline"
                   >

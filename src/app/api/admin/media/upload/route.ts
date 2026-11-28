@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { dbMedia, dbAdminActivity } from '@/lib/db';
-import { verifyAdminSessionToken, cleanText } from '@/lib/security';
+import { authenticateAdminRequest, cleanText } from '@/lib/security';
 
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+const UPLOADS_DIR = path.resolve(process.cwd(), 'public', 'uploads');
 
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -15,7 +15,6 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
-  'image/svg+xml',
   'image/gif',
   'image/x-icon',
   'image/vnd.microsoft.icon',
@@ -28,17 +27,18 @@ const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
 ]);
 
+const ALLOWED_EXTENSIONS = new Set([
+  '.jpg', '.jpeg', '.png', '.webp', '.gif', '.ico', '.mp4', '.webm', '.mov', '.mkv', '.pdf',
+]);
+
 const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15MB
 const MAX_VIDEO_SIZE = 60 * 1024 * 1024; // 60MB
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || req.cookies.get('hp_admin_auth')?.value;
-    const authCheck = verifyAdminSessionToken(token || '');
-
-    if (!token || !authCheck.valid) {
-      return NextResponse.json({ error: 'Unauthorized: Admin login required' }, { status: 401 });
+    const auth = authenticateAdminRequest(req, 'manage_media');
+    if (!auth.authenticated || !auth.user) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized: Admin login required' }, { status: auth.status || 401 });
     }
 
     const formData = await req.formData().catch(() => null);
@@ -77,17 +77,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Sanitize filename & create unique name
+    // Sanitize filename & create unique name with strict extension & path confinement
     const originalName = file.name || 'upload';
-    const ext = path.extname(originalName).toLowerCase() || (isVideo ? '.mp4' : isDoc ? '.pdf' : '.png');
+    const rawExt = path.extname(originalName).toLowerCase();
+    const ext = ALLOWED_EXTENSIONS.has(rawExt) ? rawExt : (isVideo ? '.mp4' : isDoc ? '.pdf' : '.png');
     const baseClean = path
-      .basename(originalName, ext)
+      .basename(originalName, rawExt)
       .toLowerCase()
       .replace(/[^a-z0-9_-]+/g, '-')
       .replace(/^-+|-+$/g, '') || 'file';
     
     const uniqueFilename = `${baseClean}-${Date.now().toString(36)}${ext}`;
-    const destinationPath = path.join(UPLOADS_DIR, uniqueFilename);
+    const destinationPath = path.resolve(UPLOADS_DIR, uniqueFilename);
+
+    if (!destinationPath.startsWith(UPLOADS_DIR + path.sep)) {
+      return NextResponse.json({ error: 'Invalid upload destination path' }, { status: 400 });
+    }
 
     // Write file to disk
     const arrayBuffer = await file.arrayBuffer();
@@ -121,7 +126,7 @@ export async function POST(req: NextRequest) {
       targetType: 'media',
       targetId: mediaItem.id,
       description: `Uploaded new ${mediaType}: ${uniqueFilename} (${(file.size / 1024).toFixed(1)} KB)`,
-      adminEmail: authCheck.email || 'admin@hackifypro.com',
+      adminEmail: auth.user.email || 'admin@hackifypro.com',
     });
 
     return NextResponse.json({

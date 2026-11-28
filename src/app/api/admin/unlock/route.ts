@@ -14,7 +14,13 @@ export async function POST(req: NextRequest) {
     const recoveryKey = cleanText(body.recoveryKey, 200);
     const identifier = cleanText(body.identifier, 120);
 
-    const expectedKey = process.env.ADMIN_SECRET_KEY || 'hackifypro_secret_session_key_2026';
+    const expectedKey = process.env.ADMIN_SECRET_KEY || '';
+    if (!expectedKey) {
+      return NextResponse.json(
+        { error: 'Emergency recovery key is not configured on the server.' },
+        { status: 503 }
+      );
+    }
 
     if (!safeCompare(recoveryKey, expectedKey)) {
       return NextResponse.json({ error: 'Invalid recovery key.' }, { status: 403 });

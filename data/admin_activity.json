@@ -3,6 +3,44 @@
     "action": "LOGIN_SUCCESS",
     "targetType": "auth",
     "targetId": "usr-owner-01",
+    "description": "Admin login successful (owner) from IP: ::ffff:127.0.0.1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::ffff:127.0.0.1",
+    "id": "act-mx0pp3rf-197",
+    "timestamp": "2026-11-28T17:56:28.875Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::ffff:127.0.0.1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::ffff:127.0.0.1",
+    "id": "act-mx0pp3bj-390",
+    "timestamp": "2026-11-28T17:56:28.303Z"
+  },
+  {
+    "action": "LOGIN_SUCCESS",
+    "targetType": "auth",
+    "targetId": "usr-owner-01",
+    "description": "Admin login successful (owner) from IP: ::ffff:127.0.0.1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::ffff:127.0.0.1",
+    "id": "act-mx0pku6u-891",
+    "timestamp": "2026-11-28T17:53:09.846Z"
+  },
+  {
+    "action": "LOGIN_FAILED",
+    "targetType": "auth",
+    "description": "Failed login attempt for account \"hackifypro@gmail.com\" from IP: ::ffff:127.0.0.1",
+    "adminEmail": "hackifypro@gmail.com",
+    "ipAddress": "::ffff:127.0.0.1",
+    "id": "act-mx0pktqv-684",
+    "timestamp": "2026-11-28T17:53:09.271Z"
+  },
+  {
+    "action": "LOGIN_SUCCESS",
+    "targetType": "auth",
+    "targetId": "usr-owner-01",
     "description": "Admin login successful (owner) from IP: ::1",
     "adminEmail": "hackifypro@gmail.com",
     "ipAddress": "::1",
